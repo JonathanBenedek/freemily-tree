@@ -190,7 +190,7 @@ function addChildToParent(event) {
 	addFirstNameToSheets(rowRange, bodyFirstName);
 	addLastNameToSheets(rowRange, bodyLastName);
 	addParentToChildToSheet(idChild, bodyParent1, null, 1);
-	addCommentToSheets(idChild,)
+	addCommentToSheets(idChild, commentsChild)
 
 	if (person.spouse) {
 
@@ -205,7 +205,7 @@ function addChildToParent(event) {
 	syncTreeAfterInsertNewData(person);
 
 	var buttonSavePerson = document.getElementById("savePersonDetails");
-	buttonSavePerson.removeEventListener("click", commentsChild);
+	buttonSavePerson.removeEventListener("click", addChildToParent);
 
 }
 
@@ -247,7 +247,7 @@ function addSpouse(event) {
 	// Spouse
 	addSpouseToSheets(rowRange, bodyIdPerson)
 	//comment
-	addSpouseToSheets(rowRange, commentsSpouse);
+	addCommentToSheets(rowRange, commentsSpouse);
 
 	// ** add to spouse the new preson
 	addSpouseToSheets((parseInt(person.id) + 1).toString(), bodySpouse, editCell(bodySpouse, range, () => {
@@ -340,8 +340,7 @@ function addParentToChild(event) {
 	range = "C" + rowRange;
 	editCell(bodyLastName, range);
 	//comment
-	range = "H" + rowRange;
-	editCell(commentsParent, bodyComments);
+	addCommentToSheets(rowRange, bodyComments);
 
 	// ** ADD PARENT TO CHILD **
 	var value = {
@@ -781,7 +780,7 @@ function insertNewRowToLocalDataBase(row) {
 	var parent1 = row[3];
 	var parent2 = row[4];
 	var spouse = row[5];
-	var comments = "info:";
+	var comments = "";
 	if (row[7]) {
 		comments = comments + " " + row[7];
 	}
@@ -852,8 +851,8 @@ function googTest() {
 			}
 		})
 	}
-	catch{
-		console.log("err");
+	catch (err){
+		console.log(err);
 	}
 }
 
