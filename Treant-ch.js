@@ -1863,9 +1863,16 @@
 
 	TreeNode.prototype.MakeButtons = function (buttonInfo, id) {
 		button = document.createElement('button');
-		button.innerText = buttonInfo.label;
-		button.value = id;
+		var svgURI = buttonInfo.label;
+		var svg = document.createElement('img');
+		svg.src = svgURI;
+		svg.style = "height: 16px;";
+		svg.value = id;
+		button.className= "mdl-button mdl-js-button mdl-button--accent"
+		button.appendChild(svg);
 		button.onclick = buttonInfo.onClick;
+		button.value = id;
+		button.style= "min-width: 16px;";
 		//button.className = "mdl-button mdl-js-button mdl-button--fab mdl-button--colored";
 		return button;
 	}
@@ -1875,9 +1882,9 @@
 		thiz = (currentThis) ? currentThis : this;
 		//node.className = "containerBox";
 		node.style = (thiz.spouse) ?
-			"background: #f0f1f2; width: 50%; border: solid 1px; margin: 4px; padding: 2px;   word-break: break-all;"
+			"background: #f0f1f2; width: 50%; border: solid 1px; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all;white-space: normal;min-width:140px;max-width:220px;"
 			:
-			"background: #f0f1f2; border: solid 1px; margin: 4px; padding: 2px;   word-break: break-all; width:50%; max-width: 200px;"
+			"background: #f0f1f2; border: solid 1px; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all; white-space: normal;width:50%; max-width: 200px;min-width:140px;max-width:220px;"
 
 		// IMAGE
 		// debugger;
@@ -1891,36 +1898,22 @@
 		/*TODO: add if (this.button){
 	button will like : {id:"text", label:"text" , handleButton: cb()}	
 }*/
-		if (!thiz.button){
-			thiz.button = (thiz.text.button)? thiz.text.button : null;
+		if (!thiz.button) {
+			thiz.button = (thiz.text.button) ? thiz.text.button : null;
 		}
 		if (thiz.button) {
 			node.id = "containerPerson_" + thiz.button.id
 			node.classList.add("containerPerson");
 			var divForPoint = document.createElement('div');
 			divForPoint.id = "point" + thiz.button.id;
-			divForPoint.style = "height: 0px; width: 1px; margin: auto; margin-top: 0px;"
+			divForPoint.style = "height: 0px; width: 1px; margin: auto; margin-top: 0px;";
 			node.appendChild(divForPoint);
-			if (isLogIn()) {
-				var button = document.createElement('button');
-				button.innerText = thiz.button.label;
-				button.value = thiz.button.id;
-				button.onclick = thiz.button.onClick.addButton;
-				button.className = "mdl-button mdl-js-button mdl-button--fab mdl-button--colored";
-				componentHandler.upgradeElement(button);
-				//node.appendChild(button);
-				var containerAddPerson = document.createElement('div');
-				containerAddPerson.className = "containerAddPerson";
-				containerAddPerson.appendChild(button);
-				node.appendChild(containerAddPerson);
-			}
 			var containerButtons = document.createElement('div');
+			containerButtons.style = "display:flex; justify-content: flex-end;";
 			var buttonShowParentTree = this.MakeButtons(this.button.onClick.showUpTree, thiz.button.id);
-			var buttonShowChildrenTree = this.MakeButtons(this.button.onClick.showDownTree, thiz.button.id);
-			componentHandler.upgradeElement(buttonShowParentTree);
-			componentHandler.upgradeElement(buttonShowChildrenTree);
+			buttonShowParentTree.style = "height: 30px; min-width:16px; display:flex; padding: 0px; justify-content: center;";
 
-			containerButtons.appendChild(buttonShowChildrenTree);
+			componentHandler.upgradeElement(buttonShowParentTree);
 			containerButtons.appendChild(buttonShowParentTree);
 			node.appendChild(containerButtons);
 			containerButtons.className = "containerButtons";
@@ -1933,7 +1926,7 @@
 					node.setAttribute(key, thiz.text[key]);
 				}
 				else {
-					if (!thiz.text[key]){
+					if (!thiz.text[key]) {
 						continue;
 					}
 					var textElement = document.createElement(thiz.text[key].href ? 'a' : 'p');
@@ -1946,16 +1939,61 @@
 						}
 					}
 
-					textElement.className = "ncontainerText";
-					textElement.appendChild(document.createTextNode(
-						thiz.text[key].val ? thiz.text[key].val :
-							thiz.text[key] instanceof Object ? "'val' param missing!" : thiz.text[key]
-					)
-					);
-
+					textElement.className = "containerText";
+					if ("button" !== key) {
+						textElement.appendChild(document.createTextNode(
+							thiz.text[key].val ? thiz.text[key].val :
+								thiz.text[key] instanceof Object ? "'val' param missing!" : thiz.text[key]
+						)
+						);
+					}
 					node.appendChild(textElement);
 				}
 			}
+		}
+		/*
+		if (isLogIn()) {
+			var button = document.createElement('button');
+			button.innerText = thiz.button.label;
+			button.value = thiz.button.id;
+			button.onclick = thiz.button.onClick.addButton;
+			button.className = "mdl-button mdl-js-button mdl-button--fab mdl-button--colored";
+			componentHandler.upgradeElement(button);
+			//node.appendChild(button);
+			var containerAddPerson = document.createElement('div');
+			containerAddPerson.className = "constainerAddPerson";
+			containerAddPerson.appendChild(button);
+			node.appendChild(containerAddPerson);
+		}*/
+
+
+		if (thiz.button) {
+			var emptyDivForSpace = document.createElement('div');
+			emptyDivForSpace.style= "flex-grow: 1";
+			var containerButtons = document.createElement('div');
+			containerButtons.style = "display:flex; justify-content: flex-end; "
+			var buttonShowChildrenTree = this.MakeButtons(this.button.onClick.showDownTree, thiz.button.id);
+			buttonShowChildrenTree.style = "margin-top: 26px ;height: 30px; min-width: 16px; display:flex; padding: 0px; justify-content: center;";
+			componentHandler.upgradeElement(buttonShowChildrenTree);
+			node.appendChild(emptyDivForSpace);
+			node.appendChild(containerButtons);
+			containerButtons.className = "containerButtons";
+			if (isLogIn()) {
+				var button = document.createElement('button');
+				button.innerText = thiz.button.label;
+				button.value = thiz.button.id;
+				button.onclick = thiz.button.onClick.addButton;
+				button.className = "mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab";
+				componentHandler.upgradeElement(button);
+				button.style = "background-color: #ef8d04; margin-bottom: 2px;"
+				//node.appendChild(button);
+				var containerAddPerson = document.createElement('div');
+				containerAddPerson.className = "containerAddPerson";
+				containerAddPerson.appendChild(button);
+				containerButtons.appendChild(containerAddPerson);
+			}
+			containerButtons.appendChild(buttonShowChildrenTree);
+
 		}
 		// debugger;
 		return node;

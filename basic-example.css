@@ -9,7 +9,7 @@ abbr,acronym { border:0; }
 
 body { background: #fff; }
 /* optional Container STYLES */
-.chart { height: 600px; margin: 5px; }
+.chart { margin: 5px; }
 .Treant > .node {  }
 .Treant > p { font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-weight: bold; font-size: 12px; }
 .node-name { font-weight: bold;}
@@ -21,13 +21,18 @@ body { background: #fff; }
     border-radius: 3px;
     background-color: #ffffff;
    /* border: 1px solid #000;*/
-    width: 200px;
+    width: 300px;
     font-family: Tahoma;
 	font-size: 12px;
 	display: "flex";
+	margin-top: 4px;
 	/*box-shadow: 2px 2px 14px gray;*/
 }
 
+.containerAddPerson {
+	margin-left: 26px;
+	flex-grow: 1;
+}
 
 .containerPerson {
     padding: 2px;
@@ -36,11 +41,15 @@ body { background: #fff; }
     border-radius: 3px;
     background-color: #ffffff;
    border: 1px solid #000;
-    width: 200px;
+    width: 400px;
     font-family: Tahoma;
 	font-size: 12px;
 	display: "flex";
 	box-shadow: 2px 2px 14px gray;
+	/*margin-top: 4px;*/
+	justify-content: flex-end;
+	display: flex;
+	flex-direction: column;
 }
 .nodeExample1 img {
     margin-right:  10px;

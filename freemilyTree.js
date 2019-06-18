@@ -190,7 +190,7 @@ function addChildToParent(event) {
 	addFirstNameToSheets(rowRange, bodyFirstName);
 	addLastNameToSheets(rowRange, bodyLastName);
 	addParentToChildToSheet(idChild, bodyParent1, null, 1);
-	addCommentToSheets(idChild, commentsChild)
+	addCommentToSheets(rowRange, commentsChild)
 
 	if (person.spouse) {
 
@@ -510,8 +510,8 @@ function handleButtonEditClick(event) {
 
 var handleButtonsMaping = {
 	addButton: handleButtonEditClick,
-	showUpTree: { onClick: randerUpTree, label: "^" },
-	showDownTree: { onClick: randerDownTree, label: "V" },
+	showUpTree: { onClick: randerUpTree, label: ".\\resources\\icons\\up.svg" },
+	showDownTree: { onClick: randerDownTree, label:  ".\\resources\\icons\\down.svg" },
 }
 
 
@@ -554,7 +554,7 @@ function insertParentsRec(personId, graphPerson) {
 		}
 		const title1 = getCommentsById(parents[0]);
 		(title1) ? temp1.text["title"] = title1 : null;
-		temp1.text["id"] = parents[0];
+		//temp1.text["id"] = parents[0];
 		chart_config.push(temp1);
 		insertParentsRec(parents[0], temp1);
 	}
@@ -566,7 +566,7 @@ function insertParentsRec(personId, graphPerson) {
 
 		}
 		const title2 = getCommentsById(parents[1]);
-		temp2.text["id"] = parents[1];
+		//temp2.text["id"] = parents[1];
 		(title2) ? temp2.text["title"] = title2 : null;
 		chart_config.push(temp2);
 		insertParentsRec(parents[1], temp2);
@@ -590,11 +590,9 @@ function insertChildernRec(parentID, grapObject) {
 				}
 				const title = getCommentsById(childId);
 				(title) ? child.text["title"] = title : null;
-				child.text["id"] = childId;
 				const spouseId = getSpouseIdById(childId);
 				const spouse = (spouseId) ? { text: { name: getFullNameById(spouseId), button: { id: spouseId, label: "+", onClick: handleButtonsMaping }, comments: getCommentsById(spouseId) } } : null;
 				if (spouse) {
-					spouse.text["id"] = spouseId;
 					child.spouse = spouse;
 				}
 				chart_config.push(child);
@@ -609,7 +607,7 @@ function makeTreeBottomUp(personId) {
 	// debugger;
 	var root = { text: { name: getFullNameById(personId) }, button: { id: personId, label: "+", onClick: handleButtonsMaping } };
 	(getCommentsById(personId)) ? root["title"] = (getCommentsById(personId)) : null;
-	root["id"] = personId;
+	//root["id"] = personId;
 	chart_config.push(root);
 	chart_config[0].rootOrientation = "SOUTH";
 	insertParentsRec(personId, root);
@@ -625,7 +623,7 @@ function makeTreeUpBottom(personId) {
 	}
 	const title = getCommentsById(personId);
 	(title) ? root.text["title"] = title : null;
-	root.text["id"] = personId;
+	//root.text["id"] = personId;
 	const spouseId = getSpouseIdById(personId);
 	let spouse;
 	if (true) {
@@ -634,7 +632,7 @@ function makeTreeUpBottom(personId) {
 		spouse = (spouseId) ? { text: { name: getFullNameById(spouseId), comments: getCommentsById(spouseId) } } : null;
 	}
 	if (spouse) {
-		spouse.text["id"] = spouseId;
+		//spouse.text["id"] = spouseId;
 		root.spouse = spouse;
 	}
 	chart_config.push(root);
