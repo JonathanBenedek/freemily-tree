@@ -835,9 +835,8 @@ function parseDataSheetsToMultiArray(data) {
 }
 
 function googTest() {
-	const url = "https://spreadsheets.google.com/feeds/cells/13D2fRpETQ4EIMDAI0SMNV4QmfNo4pw6hG2s-PYfLY-Y/1/public/full?alt=json"
 	try {
-		$.get(url, (data, status) => {
+		$.get(URL_SHEET, (data, status) => {
 			const dataArray = parseDataSheetsToMultiArray(data.feed.entry);
 			for (var i = 0; i < dataArray.length; i++) {
 				insertNewRowToLocalDataBase(dataArray[i]);
