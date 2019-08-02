@@ -34,13 +34,36 @@ body { background: #fff; }
 	flex-grow: 1;
 }
 
+.dragscroll {
+flex-grow: 1;
+overflow: auto;
+/*width: 1600px;
+height: 600px;*/
+
+padding: 20px;
+cursor : -webkit-grab;
+cursor : -moz-grab;
+cursor : -o-grab;
+cursor : grab;
+margin: 30px auto;
+}
+
+.dragscroll:active {
+ cursor : -webkit-grabbing;
+ cursor : -moz-grabbing;
+ cursor : -o-grabbing;
+ cursor : grabbing;
+}
+
+
+
 .containerPerson {
     padding: 2px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
     background-color: #ffffff;
-   border: 1px solid #000;
+   border: 1px solid rgba(0, 0, 0, 0.5);
     width: 400px;
     font-family: Tahoma;
 	font-size: 12px;

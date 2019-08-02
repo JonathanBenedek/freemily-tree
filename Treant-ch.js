@@ -857,11 +857,11 @@
 			else if (!UTIL.isjQueryAvailable() || this.CONFIG.scrollbar === 'native') {
 
 				if (this.drawArea.clientWidth < treeWidth) { // is overflow-x necessary
-					this.drawArea.style.overflowX = "auto";
+					//this.drawArea.style.overflowX = "auto";
 				}
 
 				if (this.drawArea.clientHeight < treeHeight) { // is overflow-y necessary
-					this.drawArea.style.overflowY = "auto";
+					//this.drawArea.style.overflowY = "auto";
 				}
 			}
 			// Fancy scrollbar relies heavily on jQuery, so guarding with if ( $ )
@@ -1882,9 +1882,9 @@
 		thiz = (currentThis) ? currentThis : this;
 		//node.className = "containerBox";
 		node.style = (thiz.spouse) ?
-			"background: #f0f1f2; width: 50%; border: solid 1px; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all;white-space: normal;min-width:140px;max-width:220px;"
+			"background: #f0f1f2; width: 50%; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all;white-space: normal;min-width:140px;max-width:220px;"
 			:
-			"background: #f0f1f2; border: solid 1px; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all; white-space: normal;width:50%; max-width: 200px;min-width:140px;max-width:220px;"
+			"background: #f0f1f2; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all; white-space: normal;width:50%; max-width: 200px;min-width:140px;max-width:220px;"
 
 		// IMAGE
 		// debugger;
@@ -1985,7 +1985,7 @@
 				button.onclick = thiz.button.onClick.addButton;
 				button.className = "mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab";
 				componentHandler.upgradeElement(button);
-				button.style = "background-color: #ef8d04; margin-bottom: 2px;"
+				button.style = "background-color: #ef8d04; margin-bottom: 8px;"
 				//node.appendChild(button);
 				var containerAddPerson = document.createElement('div');
 				containerAddPerson.className = "containerAddPerson";

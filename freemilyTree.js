@@ -51,7 +51,7 @@ function addParentToChildLocalDataBase(id, firstName, lastName, idChild, comment
 		person["id"] = id.toString();
 		person["firstName"] = firstName;
 		person["lastName"] = lastName;
-		if(comments){
+		if (comments) {
 			person["comments"] = comments;
 		}
 		localDataBase[id] = person;
@@ -84,12 +84,12 @@ function addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpous
 	person["firstName"] = firstNameSpouse;
 	person["lastName"] = lsatNameParentSpouse;
 	person["spouse"] = idPerson;
-	if(comments){
+	if (comments) {
 		person["comments"] = comments;
 	}
 	localDataBase[idSpouse] = person;
 	localDataBase[idPerson].spouse = idSpouse.toString();
-	
+
 }
 
 function addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, idPerson, spouseId, comments) {
@@ -98,7 +98,7 @@ function addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, idPe
 	person["firstName"] = firstNameChild;
 	person["lastName"] = lsatNameChild;
 	person["parent1"] = idPerson;
-	if(comments){
+	if (comments) {
 		person["comments"] = comments;
 	}
 	if (localDataBase[spouseId]) {
@@ -479,7 +479,7 @@ function randerDownTree(event) {
 	//makeTreeUpBottom(event.target.value)
 }
 
-function saveCommentsToSheet(){
+function saveCommentsToSheet() {
 	var commentsField = document.getElementById("commentsField");
 	var commeent = commentsField.value;
 }
@@ -511,7 +511,7 @@ function handleButtonEditClick(event) {
 var handleButtonsMaping = {
 	addButton: handleButtonEditClick,
 	showUpTree: { onClick: randerUpTree, label: ".\\resources\\icons\\up.svg" },
-	showDownTree: { onClick: randerDownTree, label:  ".\\resources\\icons\\down.svg" },
+	showDownTree: { onClick: randerDownTree, label: ".\\resources\\icons\\down.svg" },
 }
 
 
@@ -521,15 +521,28 @@ function getSpouseIdById(id) {
 }
 
 function getCommentsById(id) {
-	return (localDataBase[id].comments) ? localDataBase[id].comments : null;
+	try {
+		return (localDataBase[id].comments) ? localDataBase[id].comments : null;
+	} catch (err) {
+		console.log("err in getcommentBy id with param : id= " + id + "error: " + err);
+	}
 }
 
 function getFirstName(id) {
-	return localDataBase[parseInt(id)]["firstName"];
+	try {
+		return localDataBase[parseInt(id)]["firstName"];
+	} catch (err) {
+		console.log("error in get first name funtion with params=" + id + ".  err=" + err);
+	}
 }
 
 function getLastName(id) {
-	return localDataBase[parseInt(id)].lastName;
+	try {
+		return localDataBase[parseInt(id)].lastName;
+
+	} catch (err) {
+		console.log("error in get last name funtion with params=" + id + ".  err=" + err);
+	}
 }
 
 function getFullNameById(id) {
@@ -725,11 +738,74 @@ function buildTree(event) {
 
 }
 
+var idsAfterSearch = [];
+var whoNextToSearch = 0;
+
+
+function doSearch() {
+	whoNextToSearch =0 ;
+	var firstNameInput = document.getElementById('firstName_input').value;
+	var lastNameInput = document.getElementById('lastName_input').value;
+	idsAfterSearch = [];
+	idsAfterSearch = getIdsByName(firstNameInput, lastNameInput);
+	presentNextSearch();
+
+}
+
+function presentNextSearch() {
+	const event = { target: { value: idsAfterSearch[whoNextToSearch] } }
+	randerDownTree(event);
+	whoNextToSearch = whoNextToSearch + 1;
+}
+
+function doSearchFirstName(name) {
+	let ids = [];
+	for (index in localDataBase) {
+		if (localDataBase[index].firstName.toLowerCase() == name.toLowerCase()) {
+			ids.push(localDataBase[index].id);
+		}
+	}
+	return ids;
+}
+function doSearchLastName(name) {
+	let ids = [];
+	for (index in localDataBase) {
+		if (localDataBase[index].lastName.toLowerCase() == name.toLowerCase()) {
+			ids.push(localDataBase[index].id);
+		}
+	}
+	return ids;
+}
+
+function getIdsByName(firstNameInput, lastNameInput) {
+	var res = [];
+	var idsByFirstNames = [];
+	var idsByLastNames = [];
+	if (firstNameInput && firstNameInput !== "") {
+		idsByFirstNames = doSearchFirstName(firstNameInput);
+	}
+	if (lastNameInput && lastNameInput !== "") {
+		var idsByLastNames = doSearchLastName(lastNameInput);
+	}
+	for (let id in idsByFirstNames) {
+
+		if (-1 != idsByLastNames.indexOf(idsByFirstNames[id])) {
+			//Found First & Last name
+			res.push(idsByFirstNames[id]);
+		}
+	}
+	if (0 == res.length) {
+		res = idsByFirstNames.concat(idsByLastNames);
+	}
+	return res;
+}
 function startMakeTreeUpBottom(target) {
 	console.log("start");
 	var idInput = (target.who) ? { value: target.who } : document.getElementById('id_input');
-	//var idInput = document.getElementById('id_input');
+
+
 	var id = idInput.value;
+	//var idInput = document.getElementById('id_input');
 	var temp = chart_config.slice(0, 1);
 	chart_config = temp;
 	return makeTreeUpBottom(id);
@@ -848,7 +924,7 @@ function googTest() {
 			}
 		})
 	}
-	catch (err){
+	catch (err) {
 		console.log(err);
 	}
 }
@@ -858,3 +934,11 @@ buildTreeChildrenButton.onclick = buildTree;
 
 const buildTreeParentsButton = document.getElementById('build_tree_parents_button');
 buildTreeParentsButton.onclick = buildTree;
+
+const nextSearchButton = document.getElementById('next_search');
+nextSearchButton.onclick = presentNextSearch;
+
+
+const doSearchButton = document.getElementById('do_search');
+doSearchButton.onclick = doSearch;
+

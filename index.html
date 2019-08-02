@@ -3,6 +3,8 @@
 
 <head>
 	<title>Freemily Tree </title>
+	<script type="text/javascript" src="https://cdn.rawgit.com/asvd/dragscroll/master/dragscroll.js"></script>
+
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width">
@@ -23,7 +25,7 @@
 
 	<script src="basic-example.js"></script>
 	<script src="./authGoogle.js"></script>
-	<script src="./config.js"></script>
+	<script src="./demo/config.js"></script>
 	</script>
 
 </head>
@@ -31,18 +33,32 @@
 <!-- Load React. -->
 <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
 
-<body>
+<body style="overflow: hidden; height: 100%;">
 
-	<!--Add buttons to initiate auth sequence and sign out-->
-	<Button id="authorize_button" style="display: none;">Authorize</button>
-	<Button id="signout_button" style="display: none;">Sign Out</button>
-	<form>
+	<form style="background: #000010; box-shadow: 1px 2px 20px; opacity: 0.9; min-height: 80px; display: flex;">
+		<!--Add buttons to initiate auth sequence and sign out-->
+		<Button id="authorize_button" style="display: none;">Authorize</button>
+		<Button id="signout_button" style="display: none;">Sign Out</button>
+		<div style="color: azure">
+			Family Tree
+		</div>
+
+	</form>
+	<div>
+
 		Please enter id and then click start<br>
 		<input id="id_input" type="number" name="firstname"><br>
+		<input id="firstName_input" type="text" name="firstname"><br>
+		<input id="lastName_input" type="text" name="lastname"><br>
+
 		<button type='button' id="build_tree_children_button"> Build Tree childern</button>
 		<button type='button' id="build_tree_parents_button"> Build Tree parents</button>
+		<button type='button' id="next_search"> Next</button>
+		<button type='button' id="do_search"> Search</button>
+
+
 		<div id="like_button_container"></div>
-	</form>
+	</div>
 	<dialog id="dialogAdd" class="mdl-dialog">
 		<div class="mdl-dialog__content">
 			<p>
@@ -86,6 +102,7 @@
 			<button type="button" id="savePersonDetails" class="mdl-button">Save</button>
 		</div>
 	</dialog>
+
 	<script>
 		var dialog = document.getElementById('dialogAdd');
 		/*var showModalButton = document.querySelector('.show-modal');
@@ -99,9 +116,11 @@
 			dialog.close();
 		});
 	</script>
-	<pre id="content"></pre>
+	<div style="display: flex; height: 90%;">
+		<pre id="content" class="dragscroll"></pre>
+		<div style="flex-grow: 2"></div>
+	</div>
 	<!--<div class="chart" id="basic-example"></div>-->
-
 
 	<!-- Load our React component. -->
 
@@ -112,14 +131,16 @@
 	<!-- Note: when deploying, replace "development.js" with "production.min.js". -->
 	<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
 	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
-
+	<script src="./authGoogle.js"></script>
+	<script src="./freemilyTree.js"></script>
+	<!--<script
+	 type="text/javascript"
+	 src="https://combinatronics.com/JonathanBenedek/freemily-tree/blob/master/src/freemilyTree.js"
+  ></script>-->
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<!-- Load our React component. -->
-
 </body>
-<script src="./authGoogle.js"></script>
-<script src="./freemilyTree.js"></script>
 
-<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <!-- <script src="../jquery-connections/jquery.connections.js"></script> -->
 <!-- Connect your elements like in this example -->
 
