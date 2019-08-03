@@ -147,10 +147,15 @@ function addCommentToSheets(rowRange, bodyFirstName, cb) {
 	editCell(bodyrequest, range, cb);
 }
 
-function syncTreeAfterInsertNewData(person) {
+function syncTreeAfterInsertNewData(person, diraction) {
+	var dir = "build_tree_parents_button";
+	if ("down" === diraction) {
+		dir = "build_tree_children_button"
+	}
+	build_tree_children_button
 	var temp = chart_config.slice(0, 1);
 	chart_config = temp;
-	var event = { target: { id: "build_tree_parents_button", who: person.id } }
+	var event = { target: { id: dir, who: person.id } }
 	persons = {};
 	personsUpBottom = {};
 	for (personId in localDataBase) {
@@ -201,8 +206,8 @@ function addChildToParent(event) {
 	}
 	//
 	var dialogFields = document.getElementById('dialogFields');
-	dialogFields.close();
-	syncTreeAfterInsertNewData(person);
+	closeDialogFields();
+	syncTreeAfterInsertNewData(person, "down");
 
 	var buttonSavePerson = document.getElementById("savePersonDetails");
 	buttonSavePerson.removeEventListener("click", addChildToParent);
@@ -265,8 +270,8 @@ function addSpouse(event) {
 		});
 	}
 	var dialogFields = document.getElementById('dialogFields');
-	dialogFields.close();
-	syncTreeAfterInsertNewData(person);
+	closeDialogFields();
+	syncTreeAfterInsertNewData(person, "down");
 
 	var buttonSavePerson = document.getElementById("savePersonDetails");
 	buttonSavePerson.removeEventListener("click", addSpouse);
@@ -352,7 +357,7 @@ function addParentToChild(event) {
 		connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
 		connectSpouseRelationshipByChildRemoteStorageSheets(child.id, idParent);
 		var dialogFields = document.getElementById('dialogFields');
-		dialogFields.close();
+		closeDialogFields();
 		syncTreeAfterInsertNewData(child);
 	});
 
@@ -398,6 +403,16 @@ function handleAddParent(event) {
 	//buttonAddParent.removeEventListener("click");
 	var buttonAddParent = document.getElementById("button_add_parent");
 	buttonAddParent.removeEventListener("click", handleAddParent);
+}
+
+
+function closeDialogFields() {
+	var dialogFields = document.getElementById('dialogFields');
+	var fields = document.querySelectorAll(".mdl-textfield__input");
+	fields[0].value = "";
+	fields[1].value = "";
+	fields[2].value = "";
+	dialogFields.close();
 }
 
 function handleAddChild(event) {
@@ -450,10 +465,6 @@ function getRelevantButtons(event) {
 		res.push(buttonAddSpouse);
 	}
 
-	//** cancel button **
-	//buttonCancel.addEventListener("click", (event)=>{
-	//	dialogFields.close();
-	//})
 	res.push(buttonCancel);
 
 	return res;
@@ -715,6 +726,12 @@ function connect(chart_config) {
 	}
 }
 
+function updateHeaderDetailsById(id) {
+	
+	updateHeaderDetails(localDataBase[id].firstName);
+}
+
+
 function buildTree(event) {
 	var pre = document.getElementById("content");
 	$("#content").empty();
@@ -723,6 +740,7 @@ function buildTree(event) {
 	container.classList.add("chart")
 	pre.appendChild(container);
 	var chart_config;
+	updateHeaderDetailsById(event.target.who);
 	if ("build_tree_children_button" === event.target.id) {
 		chart_config = startMakeTreeUpBottom(event.target);
 	} else if ("build_tree_parents_button" === event.target.id) {
@@ -742,13 +760,22 @@ var idsAfterSearch = [];
 var whoNextToSearch = 0;
 
 
+
+function closeSearchDiaolog() {
+	$("#search_dialog")[0].close();
+	$("#firstName_input")[0].value = ""
+	$("#lastName_input")[0].value = ""
+
+}
+
 function doSearch() {
-	whoNextToSearch =0 ;
+	whoNextToSearch = 0;
 	var firstNameInput = document.getElementById('firstName_input').value;
 	var lastNameInput = document.getElementById('lastName_input').value;
 	idsAfterSearch = [];
 	idsAfterSearch = getIdsByName(firstNameInput, lastNameInput);
 	presentNextSearch();
+	closeSearchDiaolog();
 
 }
 
@@ -928,7 +955,7 @@ function googTest() {
 		console.log(err);
 	}
 }
-
+/*
 const buildTreeChildrenButton = document.getElementById('build_tree_children_button');
 buildTreeChildrenButton.onclick = buildTree;
 
@@ -942,3 +969,72 @@ nextSearchButton.onclick = presentNextSearch;
 const doSearchButton = document.getElementById('do_search');
 doSearchButton.onclick = doSearch;
 
+const cancelButtonTextField = document.getElementById("cancelPersonDetails");
+cancelButtonTextField.onclick = closeDialogFields;
+
+function ScrollZoom(container, max_scale, factor) {
+	var target = container.children().first()
+	var size = { w: target.width(), h: target.height() }
+	var pos = { x: 0, y: 0 }
+	var zoom_target = { x: 0, y: 0 }
+	var zoom_point = { x: 0, y: 0 }
+	var scale = 1
+	target.css('transform-origin', '0 0')
+	target.on("mousewheel DOMMouseScroll", scrolled)
+
+	function scrolled(e) {
+		console.log("scrol-----------")
+		var offset = container.offset()
+		zoom_point.x = e.pageX - offset.left
+		zoom_point.y = e.pageY - offset.top
+
+		e.preventDefault();
+		var delta = e.delta || e.originalEvent.wheelDelta;
+		if (delta === undefined) {
+			//we are on firefox
+			delta = e.originalEvent.detail;
+		}
+		delta = Math.max(-1, Math.min(1, delta)) // cap the delta to [-1,1] for cross browser consistency
+
+		// determine the point on where the slide is zoomed in
+		zoom_target.x = (zoom_point.x - pos.x) / scale
+		zoom_target.y = (zoom_point.y - pos.y) / scale
+
+		// apply zoom
+		scale += delta * factor * scale
+		scale = Math.max(1, Math.min(max_scale, scale))
+
+		// calculate x and y based on zoom
+		pos.x = -zoom_target.x * scale + zoom_point.x
+		pos.y = -zoom_target.y * scale + zoom_point.y
+
+
+		// Make sure the slide stays in its container area when zooming out
+		if (pos.x > 0)
+			pos.x = 0
+		if (pos.x + size.w * scale < size.w)
+			pos.x = -size.w * (scale - 1)
+		if (pos.y > 0)
+			pos.y = 0
+		if (pos.y + size.h * scale < size.h)
+			pos.y = -size.h * (scale - 1)
+
+		update()
+	}
+
+	function update() {
+		target.css('transform', 'translate(' + (pos.x) + 'px,' + (pos.y) + 'px) scale(' + scale + ',' + scale + ')')
+	}
+}
+
+
+function showSearchDialog() {
+	$("#searchDialog")[0].showModal();
+
+}
+
+$(document).ready(function () {
+	showSearchDialog();
+});
+
+new ScrollZoom($('#content'), 4, 0.5)*/
