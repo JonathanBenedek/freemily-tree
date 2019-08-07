@@ -26,9 +26,9 @@
 
 	<script src="basic-example.js"></script>
 	<script src="./authGoogle.js"></script>
-	<script src="../demo/config.js"></script>
+	<script src="./demo/config.js"></script>
 	<script src="./freemilyTree.js"></script>
-
+	<script src="./demo/config.js"></script>
 	</script>
 
 </head>
@@ -40,16 +40,54 @@
 
 	<form style="background: #66bb77; box-shadow: 1px 2px 20px; opacity: 0.9; min-height: 80px; display: flex;">
 		<!--Add buttons to initiate auth sequence and sign out-->
-		<Button id="authorize_button" type="button"  style="display: none;">Authorize</button>
-		<Button id="signout_button" type="button"  style="display: none;">Sign Out</button>
+		<Button id="authorize_button" type="button" style="display: none;">Authorize</button>
+		<Button id="signout_button" type="button" style="display: none;">Sign Out</button>
 		<div style="color: white">
 			Family Tree
 		</div>
 		<div id="header_current_person_details" style="color: white;">
-			
+
 		</div>
 
 	</form>
+
+
+	<dialog id="wellcome_dialog" style="width:400px" class="mdl-dialog">
+		<div style="padding:0px;" class="mdl-dialog__content">
+			<p>
+				Wellcome
+			</p>
+		</div>
+		<form action="#">
+			<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+				<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="urlSheet">
+				<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">sheet url</label>
+			</div>
+		</form>
+		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+			<Button type="button" id="conect_button" class="mdl-button">Connect</button>
+		</div>
+	</dialog>
+
+
+	<dialog id="auth_dialog" style="width:400px" class="mdl-dialog">
+		<div style="padding:0px;" class="mdl-dialog__content">
+			<p>
+				Authantication
+			</p>
+		</div>
+		<form action="#">
+			<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+				<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="TODO:---">
+				<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">sheet url</label>
+			</div>
+		</form>
+		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+
+			<Button type="button" id="authorize_button" class="mdl-button">Authorize</button>
+			<Button type="button" id="signout_button" class="mdl-button">Sign Out</button>
+		</div>
+	</dialog>
 
 	<dialog id="search_dialog" style="width:400px" class="mdl-dialog">
 		<div style="padding:0px;" class="mdl-dialog__content">
@@ -60,8 +98,7 @@
 		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
 			<form action="#">
 				<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-					<input style="margin-left:20px" class="mdl-textfield__input" type="text"
-						id="firstName_input">
+					<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="firstName_input">
 					<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">First Name</label>
 				</div>
 			</form>
@@ -142,7 +179,7 @@
 		});
 	</script>
 	<div style="display: flex; height: 90%;">
-		<pre id="content" class="dragscroll zoom"></pre>
+		<pre id="content" class="dragscroll"></pre>
 		<div style="flex-grow: 2"></div>
 	</div>
 	<!--<div class="chart" id="basic-example"></div>-->

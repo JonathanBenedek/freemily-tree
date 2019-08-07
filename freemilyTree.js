@@ -727,8 +727,9 @@ function connect(chart_config) {
 }
 
 function updateHeaderDetailsById(id) {
-	
-	updateHeaderDetails(localDataBase[id].firstName);
+	if(id){
+		updateHeaderDetails(localDataBase[id].firstName);
+	}
 }
 
 
@@ -897,10 +898,11 @@ function insertNewRowToLocalDataBase(row) {
 	}
 }
 
-function listMajors() {
-
+function listMajors(sheetIdInput) {
+	var sheetId = (sheetIdInput && "" != sheetIdInput) ? sheetIdInput : SHEET_ID; 
+	if (sheetId)
 	gapi.client.sheets.spreadsheets.values.get({
-		spreadsheetId: '13D2fRpETQ4EIMDAI0SMNV4QmfNo4pw6hG2s-PYfLY-Y',
+		spreadsheetId: sheetId,
 		range: 'A1:H',
 	}).then(function (response) {
 		isUserHavePremission = true;
@@ -937,9 +939,13 @@ function parseDataSheetsToMultiArray(data) {
 
 }
 
-function googTest() {
+function loadFamilyTree(id) {
 	try {
-		$.get(URL_SHEET, (data, status) => {
+		var url = `https://spreadsheets.google.com/feeds/cells/${SHEET_ID}/1/public/full?alt=json`;
+		if (id && id !== ""){
+			url = `https://spreadsheets.google.com/feeds/cells/${id}/1/public/full?alt=json`;
+		}
+		$.get(url, (data, status) => {
 			const dataArray = parseDataSheetsToMultiArray(data.feed.entry);
 			for (var i = 0; i < dataArray.length; i++) {
 				insertNewRowToLocalDataBase(dataArray[i]);

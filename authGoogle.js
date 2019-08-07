@@ -19,7 +19,7 @@
 	 */
 	function handleClientLoad() {
 		var dialog = document.querySelector('dialog');
-		googTest();
+		//loadFamilyTree();
 		gapi.load('client:auth2', initClient);
 	}
 
@@ -55,9 +55,10 @@
 	 */
 	function updateSigninStatus(isSignedIn) {
 		if (isSignedIn) {
-			authorizeButton.style.display = 'none';
+			hideAuthDialog();
+			//authorizeButton.style.display = 'none';
 			signoutButton.style.display = 'block';
-			listMajors();
+			//listMajors();
 		} else {
 			authorizeButton.style.display = 'block';
 			signoutButton.style.display = 'none';

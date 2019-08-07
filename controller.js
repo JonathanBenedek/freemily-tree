@@ -7,6 +7,9 @@ nextSearchButton.onclick = presentNextSearch;
 const hideSearchDialogButton = document.getElementById('button_hide_search_dialog');
 hideSearchDialogButton.onclick = closeSearchDiaolog;
 
+const connectToUrlButton = document.getElementById("conect_button");
+connectToUrlButton.onclick = connectToSheetRemote;
+
 const goTOSearchButton = document.getElementById('go_to_search');
 goTOSearchButton.onclick = showSearchDialog;
 
@@ -78,13 +81,42 @@ function showSearchDialog() {
 
 }
 
+function showAuthDialog(){
+	$("#auth_dialog")[0].showModal();
+}
+
+function hideAuthDialog(){
+	$("#auth_dialog")[0].close()
+}
+
+
+function showWellcomeDialog(){
+	$("#wellcome_dialog")[0].showModal();
+}
+
+function hideWellcomeDialog(){
+	$("#wellcome_dialog")[0].close()
+}
+
+
+function connectToSheetRemote(){
+	var url = $("#urlSheet").val();
+//	URL_SHEET = url
+	//handleClientLoad();
+	listMajors(url);
+	loadFamilyTree(url);
+	hideWellcomeDialog();
+}
+
 function updateHeaderDetails(text){
 	//$("#header_current_person_details")[0].empty();
 	$("#header_current_person_details")[0].append(text)
 }
 
 $(document).ready(function () {
-	showSearchDialog();
+	//showSearchDialog();
+	//showAuthDialog();
+	showWellcomeDialog();
 	updateHeaderDetails("");
 });
 
