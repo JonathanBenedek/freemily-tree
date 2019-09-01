@@ -152,7 +152,6 @@ function syncTreeAfterInsertNewData(person, diraction) {
 	if ("down" === diraction) {
 		dir = "build_tree_children_button"
 	}
-	build_tree_children_button
 	var temp = chart_config.slice(0, 1);
 	chart_config = temp;
 	var event = { target: { id: dir, who: person.id } }
@@ -167,10 +166,9 @@ function syncTreeAfterInsertNewData(person, diraction) {
 
 function addChildToParent(event) {
 	const person = event.target.person;
-	var fields = document.querySelectorAll(".mdl-textfield__input");
-	var firstNameChild = fields[0].value;
-	var lsatNameChild = fields[1].value;
-	var commentsChild = fields[2].value;
+	var firstNameChild = $("#firstName_input").val();
+	var lsatNameChild = $("#lastName_input").val();
+	var commentsChild = $("#textFiledInputcomment").val();
 	var idChild = getNewId();
 	addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, person.id, parseInt(person.spouse), commentsChild);
 	var range = "";
@@ -218,10 +216,9 @@ function addChildToParent(event) {
 //TODO: make one pice code of add spuse add perosn add child add.. 
 function addSpouse(event) {
 	const person = event.target.person;
-	var fields = document.querySelectorAll(".mdl-textfield__input");
-	var firstNameSpouse = fields[0].value;
-	var lsatNameParentSpouse = fields[1].value;
-	var commentsSpouse = fields[2].value;
+	var firstNameSpouse = document.getElementById('firstName_input').value;
+	var lsatNameParentSpouse = document.getElementById('lastName_input').value;
+	var commentsSpouse = document.getElementById('textFiledInputcomment').value;
 	var idSpouse = getNewId();
 	addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpouse, person.id, commentsSpouse);
 	var range = "";
@@ -314,10 +311,9 @@ function connectSpouseRelationshipByChildLocalDatabase(chidId, spouseId) {
 
 function addParentToChild(event) {
 	const child = event.target.person;
-	var fields = document.querySelectorAll(".mdl-textfield__input");
-	var firstNameParent = fields[0].value;
-	var lsatNameParent = fields[1].value;
-	var commentsParent = fields[2].value;
+	var firstNameParent = document.getElementById('firstName_input').value;
+	var lsatNameParent = document.getElementById('lastName_input').value;
+	var commentsParent = document.getElementById('textFiledInputcomment').value;
 	var idParent = getNewId();
 	addParentToChildLocalDataBase(idParent, firstNameParent, lsatNameParent, child.id, commentsParent);
 	var range = "";
@@ -384,7 +380,6 @@ function handleAddSpouse(event) {
 	var dialogFields = document.getElementById('dialogFields');
 	dialogAdd.close();
 	dialogFields.showModal();
-	var fields = document.querySelectorAll(".mdl-textfield__input");
 	//buttonAddSpouse.removeEventListener("click");
 	var buttonAddSpouse = document.getElementById("button_add_spouse");
 	buttonAddSpouse.removeEventListener("click", handleAddSpouse);
@@ -408,10 +403,6 @@ function handleAddParent(event) {
 
 function closeDialogFields() {
 	var dialogFields = document.getElementById('dialogFields');
-	var fields = document.querySelectorAll(".mdl-textfield__input");
-	fields[0].value = "";
-	fields[1].value = "";
-	fields[2].value = "";
 	dialogFields.close();
 }
 
@@ -663,13 +654,6 @@ function makeTreeUpBottom(personId) {
 	chart_config[0].rootOrientation = "NORTH";
 	insertChildernRec(personId, root);
 	return chart_config;
-	new Treant(chart_config);
-	jQuery('#12').connections({ to: '#5' });
-	setInterval(() => {
-		console.log("set interval")
-		$('#12').connections('update');
-		console.log("set interval - end")
-	}, 20)
 }
 
 
@@ -711,13 +695,7 @@ function connect(chart_config) {
 				if (elemChild && elemChild.parentElement) {
 					var elemParent = elemChild.parentElement;
 					elemParent.id = "tempId_" + id;
-					//elemParent.connections({to: "#containerPerson_"+id});
-					//jQuery('#tempId_9').connections({ to: '#point' + id });
-					//	jQuery('#point' + id).connections({ to: '#tempId_9' });
-					//$('#tempId, #containerPerson_'+'id').connections();
-					//elemParent.id ="";
-					//jQuery('#1').connections({ to: '#5' });
-					//jQuery('#12').connections({ to: '#9' });
+
 				}
 
 			}
@@ -727,7 +705,7 @@ function connect(chart_config) {
 }
 
 function updateHeaderDetailsById(id) {
-	if(id){
+	if (id) {
 		updateHeaderDetails(localDataBase[id].firstName);
 	}
 }
@@ -751,7 +729,6 @@ function buildTree(event) {
 	}
 	new Treant(chart_config);
 	connect(chart_config);
-	//	jQuery('#containerPerson_12').connections({ to: '#containerPerson_5' });
 
 
 
@@ -764,15 +741,14 @@ var whoNextToSearch = 0;
 
 function closeSearchDiaolog() {
 	$("#search_dialog")[0].close();
-	$("#firstName_input")[0].value = ""
-	$("#lastName_input")[0].value = ""
-
+	document.getElementById('firstName_search').value = ""
+	document.getElementById('lastName_search').value = ""
 }
 
 function doSearch() {
 	whoNextToSearch = 0;
-	var firstNameInput = document.getElementById('firstName_input').value;
-	var lastNameInput = document.getElementById('lastName_input').value;
+	var firstNameInput = document.getElementById('firstName_search').value;
+	var lastNameInput = document.getElementById('lastName_search').value;
 	idsAfterSearch = [];
 	idsAfterSearch = getIdsByName(firstNameInput, lastNameInput);
 	presentNextSearch();
@@ -899,15 +875,30 @@ function insertNewRowToLocalDataBase(row) {
 }
 
 function listMajors(sheetIdInput) {
-	var sheetId = (sheetIdInput && "" != sheetIdInput) ? sheetIdInput : SHEET_ID; 
-	if (sheetId)
+	var sheetId = sheetIdInput;
+	if (!sheetId) {
+		document.getElementById("error_sheetUrl").classList.remove("hidden");
+		document.getElementById("error_sheetUrl").classList.add("shown");
+		return;
+	}
 	gapi.client.sheets.spreadsheets.values.get({
 		spreadsheetId: sheetId,
 		range: 'A1:H',
 	}).then(function (response) {
 		isUserHavePremission = true;
-	}, function (response) {
-		console.log(response)
+		SHEET_ID = sheetId;
+		loadFamilyTree();
+		hideWellcomeDialog();
+	}, function (err) {
+		console.log(err);
+		document.getElementById("error_sheetUrl").classList.remove("hidden");
+		document.getElementById("error_sheetUrl").classList.add("shown");
+		return;
+	}).catch((err) => {
+		console.log(err);
+		document.getElementById("error_sheetUrl").classList.remove("hidden");
+		document.getElementById("error_sheetUrl").classList.add("shown");
+		return;
 	});
 
 }
@@ -939,12 +930,9 @@ function parseDataSheetsToMultiArray(data) {
 
 }
 
-function loadFamilyTree(id) {
+function loadFamilyTree() {
 	try {
 		var url = `https://spreadsheets.google.com/feeds/cells/${SHEET_ID}/1/public/full?alt=json`;
-		if (id && id !== ""){
-			url = `https://spreadsheets.google.com/feeds/cells/${id}/1/public/full?alt=json`;
-		}
 		$.get(url, (data, status) => {
 			const dataArray = parseDataSheetsToMultiArray(data.feed.entry);
 			for (var i = 0; i < dataArray.length; i++) {

@@ -81,34 +81,35 @@ function showSearchDialog() {
 
 }
 
-function showAuthDialog(){
+function showAuthDialog() {
 	$("#auth_dialog")[0].showModal();
 }
 
-function hideAuthDialog(){
+function hideAuthDialog() {
 	$("#auth_dialog")[0].close()
 }
 
 
-function showWellcomeDialog(){
+function showWellcomeDialog() {
 	$("#wellcome_dialog")[0].showModal();
 }
 
-function hideWellcomeDialog(){
+function hideWellcomeDialog() {
 	$("#wellcome_dialog")[0].close()
 }
 
 
-function connectToSheetRemote(){
+function connectToSheetRemote() {
 	var url = $("#urlSheet").val();
-//	URL_SHEET = url
-	//handleClientLoad();
+	//	URL_SHEET = url
+	//	handleClientLoad();
 	listMajors(url);
-	loadFamilyTree(url);
-	hideWellcomeDialog();
+	//loadFamilyTree(url);
+	//hideWellcomeDialog();
+	$("#urlSheet")[0] = "";
 }
 
-function updateHeaderDetails(text){
+function updateHeaderDetails(text) {
 	//$("#header_current_person_details")[0].empty();
 	$("#header_current_person_details")[0].append(text)
 }

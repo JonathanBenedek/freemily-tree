@@ -26,3 +26,13 @@
 .containerBox{
 	/*background: #f0f1f2*/
 }
+
+.hidden{
+    visibility: hidden;
+}
+.shown{
+	visibility: visible;
+	color: red;
+	margin-left: 20px;
+	margin-bottom: 12px
+}
