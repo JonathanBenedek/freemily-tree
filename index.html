@@ -2,213 +2,211 @@
 <html>
 
 <head>
-	<title>Freemily Tree </title>
-	<script type="text/javascript" src="https://cdn.rawgit.com/asvd/dragscroll/master/dragscroll.js"></script>
+    <title>Freemily Tree </title>
+    <script type="text/javascript" src="https://cdn.rawgit.com/asvd/dragscroll/master/dragscroll.js"></script>
 
-	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta name="viewport" content="width=device-width">
-	<link rel="stylesheet" href="Treant.css">
-	<link rel="stylesheet" href="basic-example.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-	<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
-	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="Treant.css">
+    <link rel="stylesheet" href="basic-example.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
 
-	<!-- Include jQuery and the Connections plugin -->
-	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
-	<!--	<script src="jquery.connections.js"></script> -->
-	<!-- Connect your elements like in this example -->
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-	<script src="vendor/raphael.js"></script>
-	<script src="Treant-ch.js"></script>
+    <!-- Include jQuery and the Connections plugin -->
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <!--	<script src="jquery.connections.js"></script> -->
+    <!-- Connect your elements like in this example -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="vendor/raphael.js"></script>
+    <script src="Treant-ch.js"></script>
 
-	<script src="basic-example.js"></script>
-	<script src="./authGoogle.js"></script>
-	<script src="./config.js"></script>
-	<script src="./freemilyTree.js"></script>
-	</script>
+    <script src="basic-example.js"></script>
+    <script src="./authGoogle.js"></script>
+    <script src="./config.js"></script>
+    <script src="./freemilyTree.js"></script>
+    </script>
 </head>
 
 <!-- Load React. -->
 <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
 
-<body style="overflow: hidden; height: 100%;">
+<body style="height: 100%; overflow: hidden;">
 
-	<form style="background: #66bb77; box-shadow: 1px 2px 20px; opacity: 0.9; min-height: 80px; display: flex;">
-		<!--Add buttons to initiate auth sequence and sign out-->
-		<Button id="authorize_button" type="button" style="display: none;">Authorize</button>
-		<Button id="signout_button" type="button" style="display: none;">Sign Out</button>
-		<div style="color: white">
-			Family Tree
-		</div>
-		<div id="header_current_person_details" style="color: white;">
+    <form style="background: #66bb77; box-shadow: 1px 2px 20px; opacity: 0.9; min-height: 80px; display: flex;">
+        <!--Add buttons to initiate auth sequence and sign out-->
+        <Button id="authorize_button" type="button" style="display: none;">Authorize</button>
+        <Button id="signout_button" type="button" style="display: none;">Sign Out</button>
+        <div style="color: white">
+            Family Tree
+        </div>
+        <div id="header_current_person_details" style="color: white;">
 
-		</div>
+        </div>
 
-	</form>
-
-
-	<dialog id="wellcome_dialog" style="width:400px" class="mdl-dialog">
-		<div style=" margin-left: 20px;  padding:0px;" class="mdl-dialog__content">
-			<p style="font-weight: bold; font-size: 20px;">
-				Conect To Data Base
-			</p>
-			<p style="sfont-size: 16px;">
-				Please insert sheet id
-			</p>
-		</div>
-		<form action=" #">
-			<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-				<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="urlSheet">
-				<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">sheet url</label>
-			</div>
-			<div class="hidden" id="error_sheetUrl">
-				<label>Please insert a valid sheet id</label>
-			</div>
-		</form>
-		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
-			<Button type="button" id="conect_button" class="mdl-button">Connect</button>
-		</div>
-	</dialog>
+    </form>
 
 
-	<dialog id="auth_dialog" style="width:400px" class="mdl-dialog">
-		<div style="padding:0px;" class="mdl-dialog__content">
-			<p>
-				Authantication
-			</p>
-		</div>
-		<form action="#">
-			<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-				<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="TODO:---">
-				<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">sheet url</label>
-			</div>
-		</form>
-		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+    <dialog id="wellcome_dialog" style="width:400px" class="mdl-dialog">
+        <div style=" margin-left: 20px;  padding:0px;" class="mdl-dialog__content">
+            <p style="font-weight: bold; font-size: 20px;">
+                Conect To Data Base
+            </p>
+            <p style="sfont-size: 16px;">
+                Please insert sheet id
+            </p>
+        </div>
+        <form action=" #">
+            <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input style="margin-left:20px" class="mdl-textfield__input" type="text" id="urlSheet">
+                <label style="margin-left:20px" class="mdl-textfield__label" for="sample3">sheet url</label>
+            </div>
+            <div class="hidden" id="error_sheetUrl">
+                <label>Please insert a valid sheet id</label>
+            </div>
+        </form>
+        <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+            <Button type="button" id="conect_button" class="mdl-button">Connect</button>
+        </div>
+    </dialog>
 
-			<Button type="button" id="authorize_button" class="mdl-button">Authorize</button>
-			<Button type="button" id="signout_button" class="mdl-button">Sign Out</button>
-		</div>
-	</dialog>
 
-	<dialog id="search_dialog" style="width:400px" class="mdl-dialog">
-		<div style="padding:0px;" class="mdl-dialog__content">
-			<p>
-				Search
-			</p>
-		</div>
-		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
-			<form action="#">
-				<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-					<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="firstName_search">
-					<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">First Name</label>
-				</div>
-			</form>
-			<form action="#">
-				<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-					<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="lastName_search">
-					<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">Last Name</label>
-				</div>
-			</form>
-			<button type="button" id="button_hide_search_dialog" class="mdl-button">Cancel</button>
-			<button type="button" id="do_search" class="mdl-button">Search</button>
-		</div>
-	</dialog>
+    <dialog id="auth_dialog" style="width:400px" class="mdl-dialog">
+        <div style="padding:0px;" class="mdl-dialog__content">
+            <p>
+                Authantication
+            </p>
+        </div>
+        <form action="#">
+            <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input style="margin-left:20px" class="mdl-textfield__input" type="text" id="TODO:---">
+                <label style="margin-left:20px" class="mdl-textfield__label" for="sample3">sheet url</label>
+            </div>
+        </form>
+        <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
 
-	<div>
+            <Button type="button" id="authorize_button" class="mdl-button">Authorize</button>
+            <Button type="button" id="signout_button" class="mdl-button">Sign Out</button>
+        </div>
+    </dialog>
 
-		<button type='button' id="next_search"> Next</button>
-		<button type='button' id="go_to_search"> Search</button>
+    <dialog id="search_dialog" style="width:400px" class="mdl-dialog">
+        <div style="padding:0px;" class="mdl-dialog__content">
+            <p>
+                Search
+            </p>
+        </div>
+        <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+            <form action="#">
+                <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input style="margin-left:20px" class="mdl-textfield__input" type="text" id="firstName_search">
+                    <label style="margin-left:20px" class="mdl-textfield__label" for="sample3">First Name</label>
+                </div>
+            </form>
+            <form action="#">
+                <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input style="margin-left:20px" class="mdl-textfield__input" type="text" id="lastName_search">
+                    <label style="margin-left:20px" class="mdl-textfield__label" for="sample3">Last Name</label>
+                </div>
+            </form>
+            <button type="button" id="button_hide_search_dialog" class="mdl-button">Cancel</button>
+            <button type="button" id="do_search" class="mdl-button">Search</button>
+        </div>
+    </dialog>
 
-		<div id="like_button_container"></div>
-	</div>
-	<dialog id="dialogAdd" class="mdl-dialog">
-		<div class="mdl-dialog__content">
-			<p>
-				Which person do you want to add?
-			</p>
-		</div>
-		<div id="containerButtonsAddDialog" class="mdl-dialog__actions mdl-dialog__actions--full-width">
-			<button type="button" id="button_add_parent" class="mdl-button">Parent</button>
-			<button type="button" id="button_add_child" class="mdl-button">Child</button>
-			<button type="button" id="button_add_spouse" class="mdl-button">Spouse</button>
-			<button type="button" id="button_cancel_add_person" class="mdl-button close">Cancel</button>
-		</div>
-	</dialog>
-	<dialog id="dialogFields" style="width:400px" class="mdl-dialog">
-		<div style="padding:0px;" class="mdl-dialog__content">
-			<p>
-				Please add the info about the person
-			</p>
-		</div>
-		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
-			<form action="#">
-				<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-					<input id="firstName_input" style="margin-left:20px" class="mdl-textfield__input" type="text">
-					<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">First Name</label>
-				</div>
-			</form>
-			<form action="#">
-				<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-					<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="lastName_input">
-					<label style="margin-left:20px" class="mdl-textfield__label" for="sample3">Last Name</label>
-				</div>
-			</form>
-			<form action="#">
-				<div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-					<input style="margin-left:20px" class="mdl-textfield__input" type="text" id="textFiledInputcomment">
-					<label id="commentsField" style="margin-left:20px" class="mdl-textfield__label"
-						for="sample3">Comments</label>
-				</div>
-			</form>
-			<button type="button" id="cancelPersonDetails" class="mdl-button">Cancel</button>
-			<button type="button" id="savePersonDetails" class="mdl-button">Save</button>
-		</div>
-	</dialog>
+    <div>
+        <div>version 1</div>
+        <button type='button' id="next_search"> Next</button>
+        <button type='button' id="go_to_search"> Search</button>
 
-	<script>
-		var dialog = document.getElementById('dialogAdd');
-		/*var showModalButton = document.querySelector('.show-modal');
-		if (!dialog.showModal) {
-			dialogPolyfill.registerDialog(dialog);
-		}
-		showModalButton.addEventListener('click', function () {
-			dialog.showModal();
-		});*/
-		dialog.querySelector('.close').addEventListener('click', function () {
-			dialog.close();
-		});
-	</script>
-	<div style="display: flex; height: 90%;">
-		<pre id="content" class="dragscroll"></pre>
-		<div style="flex-grow: 2"></div>
-	</div>
-	<!--<div class="chart" id="basic-example"></div>-->
+        <div id="like_button_container"></div>
+    </div>
+    <dialog id="dialogAdd" class="mdl-dialog">
+        <div class="mdl-dialog__content">
+            <p>
+                Which person do you want to add?
+            </p>
+        </div>
+        <div id="containerButtonsAddDialog" class="mdl-dialog__actions mdl-dialog__actions--full-width">
+            <button type="button" id="button_add_parent" class="mdl-button">Parent</button>
+            <button type="button" id="button_add_child" class="mdl-button">Child</button>
+            <button type="button" id="button_add_spouse" class="mdl-button">Spouse</button>
+            <button type="button" id="button_cancel_add_person" class="mdl-button close">Cancel</button>
+        </div>
+    </dialog>
+    <dialog id="dialogFields" style="width:400px" class="mdl-dialog">
+        <div style="padding:0px;" class="mdl-dialog__content">
+            <p>
+                Please add the info about the person
+            </p>
+        </div>
+        <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+            <form action="#">
+                <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input id="firstName_input" style="margin-left:20px" class="mdl-textfield__input" type="text">
+                    <label style="margin-left:20px" class="mdl-textfield__label" for="sample3">First Name</label>
+                </div>
+            </form>
+            <form action="#">
+                <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input style="margin-left:20px" class="mdl-textfield__input" type="text" id="lastName_input">
+                    <label style="margin-left:20px" class="mdl-textfield__label" for="sample3">Last Name</label>
+                </div>
+            </form>
+            <form action="#">
+                <div style="display: flex;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input style="margin-left:20px" class="mdl-textfield__input" type="text" id="textFiledInputcomment">
+                    <label id="commentsField" style="margin-left:20px" class="mdl-textfield__label" for="sample3">Comments</label>
+                </div>
+            </form>
+            <button type="button" id="cancelPersonDetails" class="mdl-button">Cancel</button>
+            <button type="button" id="savePersonDetails" class="mdl-button">Save</button>
+        </div>
+    </dialog>
 
-	<!-- Load our React component. -->
+    <script>
+        var dialog = document.getElementById('dialogAdd');
+        /*var showModalButton = document.querySelector('.show-modal');
+        if (!dialog.showModal) {
+        	dialogPolyfill.registerDialog(dialog);
+        }
+        showModalButton.addEventListener('click', function () {
+        	dialog.showModal();
+        });*/
+        dialog.querySelector('.close').addEventListener('click', function() {
+            dialog.close();
+        });
+    </script>
+    <div style="display: flex; height: 90%; overflow: scroll;">
+        <pre id="content" class="dragscroll"></pre>
+        <div style="flex-grow: 2"></div>
+    </div>
+    <!--<div class="chart" id="basic-example"></div>-->
 
-	<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()"
-		onreadystatechange="if (this.readyState === 'complete') this.onload()">
-		</script>
-	<!-- Load React. -->
-	<!-- Note: when deploying, replace "development.js" with "production.min.js". -->
-	<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
-	<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
-	<script src="./authGoogle.js"></script>
-	<script src="./controller.js"></script>
-	<!--<script src="./freemilyTree.js"></script> -->
-	<!--<script
+    <!-- Load our React component. -->
+
+    <script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+    <!-- Load React. -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script src="./authGoogle.js"></script>
+    <script src="./controller.js"></script>
+    <!--<script src="./freemilyTree.js"></script> -->
+    <!--<script
 	 type="text/javascript"
 	 src="https://combinatronics.com/JonathanBenedek/freemily-tree/blob/master/src/freemilyTree.js"
   ></script>-->
-	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
-	<script src="wheelzoom.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <!-- 	<script src="wheelzoom.js"></script>
 	<script>
 		wheelzoom(document.querySelector('img.zoom'));
-	</script>
-	<!-- Load our React component. -->
+	</script> -->
+    <!-- Load our React component. -->
 </body>
 
 <!-- <script src="../jquery-connections/jquery.connections.js"></script> -->
