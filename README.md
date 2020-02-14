@@ -1,10 +1,10 @@
-# freemily-tree
+# Freemily-tree
 
 A family tree program where you can make your own family tree for free.
 
 Ready for end point users and as a library for developers. Java script library for family tree.
 
-# Freemily Tree - Why?
+## Freemily Tree - Why?
  Sure, there are websites, like myheritage, that implement family trees, and you can mange your family tree there. But if you want no one except you and your family to have access to your database, and if you want to make sure that you never have to pay for your digital family tree - Freemily Tree is the perfect solution.
 
 ## Freemily Tree - What?
