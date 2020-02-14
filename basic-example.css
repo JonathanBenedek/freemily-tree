@@ -118,7 +118,7 @@ body {
 
 @media (max-width:1024px) {
     .PersonContainerWithSpouse {
-        width: 50px;
+        width: 100px;
     }
     .PersonContainerNoSpouse {
         width: 100px
@@ -127,7 +127,7 @@ body {
 
 @media (min-width:1025px) {
     .PersonContainerWithSpouse {
-        width: 75px;
+        width: 50%;
     }
     .PersonContainerNoSpouse {
         width: 200px
@@ -136,8 +136,8 @@ body {
 
 .dragscroll {
     flex-grow: 1;
-    /*width: 1600px;
-height: 600px;*/
+    width: 1600px;
+    height: 600px;
     padding: 20px;
     cursor: -webkit-grab;
     cursor: -moz-grab;

@@ -34,7 +34,7 @@
 <!-- Load React. -->
 <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
 
-<body style="height: 100%; overflow: hidden;">
+<body id="body" style="height: 100%; overflow: hidden;">
 
     <form style="background: #66bb77; box-shadow: 1px 2px 20px; opacity: 0.9; min-height: 80px; display: flex;">
         <!--Add buttons to initiate auth sequence and sign out-->
@@ -48,7 +48,6 @@
         </div>
 
     </form>
-
 
     <dialog id="wellcome_dialog" style="width:400px" class="mdl-dialog">
         <div style=" margin-left: 20px;  padding:0px;" class="mdl-dialog__content">
@@ -72,7 +71,6 @@
             <Button type="button" id="conect_button" class="mdl-button">Connect</button>
         </div>
     </dialog>
-
 
     <dialog id="auth_dialog" style="width:400px" class="mdl-dialog">
         <div style="padding:0px;" class="mdl-dialog__content">
@@ -118,10 +116,9 @@
     </dialog>
 
     <div>
-        <div>version 1</div>
         <button type='button' id="next_search"> Next</button>
         <button type='button' id="go_to_search"> Search</button>
-
+        <button type="button" id="zoom_in">Zoom In </button>
         <div id="like_button_container"></div>
     </div>
     <dialog id="dialogAdd" class="mdl-dialog">
@@ -180,7 +177,7 @@
             dialog.close();
         });
     </script>
-    <div style="display: flex; height: 90%; overflow: scroll;">
+    <div id="containOfContentContainer" style="display: flex; height: 90%; overflow: scroll;">
         <pre id="content" class="dragscroll"></pre>
         <div style="flex-grow: 2"></div>
     </div>

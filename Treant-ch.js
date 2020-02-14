@@ -1828,7 +1828,7 @@
         var thiz;
         thiz = (currentThis) ? currentThis : this;
 
-        var relevantStyle = (thiz.spouse) ? "PersonContainerWithSpouse" : "PersonContainerNoSpouse"
+        var relevantStyle = (currentThis) ? "PersonContainerWithSpouse" : "PersonContainerNoSpouse"
         node.classList.add(relevantStyle);
         //node.className = "containerBox";
         node.style = (thiz.spouse) ?
