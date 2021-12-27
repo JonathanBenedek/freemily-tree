@@ -441,8 +441,8 @@ function handleButtonEditClick(event) {
 }
 var handleButtonsMaping = {
     addButton: handleButtonEditClick,
-    showUpTree: { onClick: randerUpTree, label: ".\\resources\\icons\\up.svg" },
-    showDownTree: { onClick: randerDownTree, label: ".\\resources\\icons\\down.svg" }
+    showUpTree: { onClick: randerUpTree, label: ".\\..\\resources\\icons\\up.svg" },
+    showDownTree: { onClick: randerDownTree, label: ".\\..\\resources\\icons\\down.svg" }
 };
 function getSpouseIdById(id) {
     var spouse = (localDataBase[id].spouse) ? localDataBase[id].spouse : null;
