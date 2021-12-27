@@ -1882,9 +1882,9 @@
 		thiz = (currentThis) ? currentThis : this;
 		//node.className = "containerBox";
 		node.style = (thiz.spouse) ?
-			"background: #f0f1f2; width: 50%; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all;white-space: normal;min-width:140px;max-width:220px;"
+			"background: #f0f1f2; width: 50%; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all;white-space: normal;min-width:120px;max-width:220px;"
 			:
-			"background: #f0f1f2; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all; white-space: normal;width:50%; max-width: 200px;min-width:140px;max-width:220px;"
+			"background: #f0f1f2; margin: 4px; margin-top:8px; padding: 2px;   word-break: break-all; white-space: normal;width:100%; max-width: 200px;min-width:140px;max-width:220px;"
 
 		// IMAGE
 		// debugger;

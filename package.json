@@ -1,0 +1,21 @@
+{
+  "name": "freemily-tree",
+  "version": "1.0.0",
+  "description": "A family tree program. You can make your own family tree in free.",
+  "main": "Treant-ch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "python -m SimpleHTTPServer 8000",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JonathanBenedek/freemily-tree.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JonathanBenedek/freemily-tree/issues"
+  },
+  "homepage": "https://github.com/JonathanBenedek/freemily-tree#readme"
+}

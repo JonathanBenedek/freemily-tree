@@ -9,7 +9,7 @@ abbr,acronym { border:0; }
 
 body { background: #fff; }
 /* optional Container STYLES */
-.chart { margin: 5px; }
+.chart { margin: 5px; overflow: visible;}
 .Treant > .node {  }
 .Treant > p { font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; font-weight: bold; font-size: 12px; }
 .node-name { font-weight: bold;}
@@ -36,7 +36,7 @@ body { background: #fff; }
 
 .dragscroll {
 flex-grow: 1;
-overflow: hidden;
+overflow: scroll;
 /*width: 1600px;
 height: 600px;*/
 

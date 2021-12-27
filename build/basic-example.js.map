@@ -1,0 +1,1 @@
+{"version":3,"file":"basic-example.js","sourceRoot":"","sources":["../src/basic-example.js"],"names":[],"mappings":"AAAA,IAAI,MAAM,GAAG;IACL,SAAS,EAAE,gBAAgB;IAC3B,eAAe,EAAE,OAAO;IACxB,UAAU,EAAE;QACR,IAAI,EAAE,MAAM;KACf;IACD,IAAI,EAAE;QACF,SAAS,EAAE,cAAc;KAC5B;CACJ,EAGD,YAAY,GAAG;IACX,MAAM;CACT,CAAC"}

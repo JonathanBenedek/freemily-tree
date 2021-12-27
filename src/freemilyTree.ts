@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 personsUpBottom = {};
 persons = {};
 localDataBase = {};
@@ -745,10 +747,18 @@ function closeSearchDiaolog() {
 	document.getElementById('lastName_search').value = ""
 }
 
-function doSearch() {
+
+function doSearch(isParamsFromUrl) {
 	whoNextToSearch = 0;
-	var firstNameInput = document.getElementById('firstName_search').value;
-	var lastNameInput = document.getElementById('lastName_search').value;
+	var firstNameInput = "";
+	var lastNameInput = "";
+	if (isParamsFromUrl.isParamsFromUrl){
+		firstNameInput= paramsFromUrl.firstName;
+		lastNameInput = paramsFromUrl.lastName;
+	}else{
+		 firstNameInput = document.getElementById('firstName_search').value;
+		 lastNameInput = document.getElementById('lastName_search').value;
+	}
 	idsAfterSearch = [];
 	idsAfterSearch = getIdsByName(firstNameInput, lastNameInput);
 	presentNextSearch();
@@ -757,9 +767,10 @@ function doSearch() {
 }
 
 function presentNextSearch() {
-	const event = { target: { value: idsAfterSearch[whoNextToSearch] } }
+	var currentIndexForSearch =  whoNextToSearch % idsAfterSearch.length
+	const event = { target: { value: idsAfterSearch[currentIndexForSearch] } }
 	randerDownTree(event);
-	whoNextToSearch = whoNextToSearch + 1;
+	whoNextToSearch = currentIndexForSearch + 1;
 }
 
 function doSearchFirstName(name) {
@@ -887,7 +898,8 @@ function listMajors(sheetIdInput) {
 	}).then(function (response) {
 		isUserHavePremission = true;
 		SHEET_ID = sheetId;
-		loadFamilyTree();
+		parseDataSheetsToMultiArray(data.feed.entry);
+		loadFamilyTree(sheetIdInput);
 		hideWellcomeDialog();
 	}, function (err) {
 		console.log(err);
@@ -921,7 +933,6 @@ function parseDataSheetsToMultiArray(data) {
 		}
 		let c = parseInt(columnLine) - 1;
 		tempLineData[c] = data[index].gs$cell.$t;
-
 	}
 	res.push(tempLineData);
 	return res;
@@ -930,25 +941,94 @@ function parseDataSheetsToMultiArray(data) {
 
 }
 
-function loadFamilyTree() {
-	try {
-		var url = `https://spreadsheets.google.com/feeds/cells/${SHEET_ID}/1/public/full?alt=json`;
-		$.get(url, (data, status) => {
-			const dataArray = parseDataSheetsToMultiArray(data.feed.entry);
-			for (var i = 0; i < dataArray.length; i++) {
-				insertNewRowToLocalDataBase(dataArray[i]);
 
-			}
-			for (personId in localDataBase) {
-				insertDataBottomUp(parseInt(personId));
-				insertDataUpBottom(parseInt(personId));
-			}
-		})
+function parseCsvToMultiArray(csv) {
+	const res = [];
+	let index = 0 // skip first line TODO: make ocnfigurable
+	var data = csv.split("\n");
+
+	for (index; index < data.length; index++){
+		res.push(data[index].split(","));
 	}
-	catch (err) {
-		console.log(err);
-	}
+
+	return res;
+	//let cell = (lineNumber-1) * 8;
+	//cell = cell + firstLine;
+
 }
+
+
+function readCsv(){
+return new Promise((resolve, reject) => {
+	$.ajax({
+		type: "GET",  
+		url: "db.csv",
+		dataType: "text",      
+		//TODO: add error handler 
+		success: function(response)  
+		{
+		  const dataArray = parseCsvToMultiArray(response);
+
+		  resolve();
+		  //callbackLoadFamilyTreeSuccess();
+		}   
+	  });
+})
+var data;
+
+}
+
+ function listMajorsApi4(sheetId) {
+	 return new Promise((resolve, reject)=> {
+		gapi.client.sheets.spreadsheets.values.get({
+			spreadsheetId: sheetId,
+			range: 'A1:H',
+		}).then(function (response) {
+			isUserHavePremission = true;
+			SHEET_ID = sheetId;
+			resolve(response.result.values);
+			//parseDataSheetsToMultiArray(response.result.values);
+			//loadFamilyTree();
+			//hideWellcomeDialog();
+		}, function (err) {
+			console.log(err);
+			document.getElementById("error_sheetUrl").classList.remove("hidden");
+			document.getElementById("error_sheetUrl").classList.add("shown");
+			return;
+		}).catch((err) => {
+			console.log(err);
+			document.getElementById("error_sheetUrl").classList.remove("hidden");
+			document.getElementById("error_sheetUrl").classList.add("shown");
+			return;
+		});
+	 })
+
+  }
+
+async function readFromGoogleSheets(sheetIdInput){
+	 return await listMajorsApi4(sheetIdInput);
+}
+
+
+
+async function loadFamilyTree(sheetIdInput) {
+
+	 //const  dataArray = await readCsv();
+	 const dataArray = await readFromGoogleSheets(sheetIdInput);
+
+	 for (var i = 0; i < dataArray.length; i++) {
+		insertNewRowToLocalDataBase(dataArray[i]);
+	}
+	for (personId in localDataBase) {
+		insertDataBottomUp(parseInt(personId));
+		insertDataUpBottom(parseInt(personId));
+	}
+	 callbackLoadFamilyTreeSuccess();
+		hideWellcomeDialog();	 
+
+}
+
+
 /*
 const buildTreeChildrenButton = document.getElementById('build_tree_children_button');
 buildTreeChildrenButton.onclick = buildTree;
@@ -966,69 +1046,4 @@ doSearchButton.onclick = doSearch;
 const cancelButtonTextField = document.getElementById("cancelPersonDetails");
 cancelButtonTextField.onclick = closeDialogFields;
 
-function ScrollZoom(container, max_scale, factor) {
-	var target = container.children().first()
-	var size = { w: target.width(), h: target.height() }
-	var pos = { x: 0, y: 0 }
-	var zoom_target = { x: 0, y: 0 }
-	var zoom_point = { x: 0, y: 0 }
-	var scale = 1
-	target.css('transform-origin', '0 0')
-	target.on("mousewheel DOMMouseScroll", scrolled)
-
-	function scrolled(e) {
-		console.log("scrol-----------")
-		var offset = container.offset()
-		zoom_point.x = e.pageX - offset.left
-		zoom_point.y = e.pageY - offset.top
-
-		e.preventDefault();
-		var delta = e.delta || e.originalEvent.wheelDelta;
-		if (delta === undefined) {
-			//we are on firefox
-			delta = e.originalEvent.detail;
-		}
-		delta = Math.max(-1, Math.min(1, delta)) // cap the delta to [-1,1] for cross browser consistency
-
-		// determine the point on where the slide is zoomed in
-		zoom_target.x = (zoom_point.x - pos.x) / scale
-		zoom_target.y = (zoom_point.y - pos.y) / scale
-
-		// apply zoom
-		scale += delta * factor * scale
-		scale = Math.max(1, Math.min(max_scale, scale))
-
-		// calculate x and y based on zoom
-		pos.x = -zoom_target.x * scale + zoom_point.x
-		pos.y = -zoom_target.y * scale + zoom_point.y
-
-
-		// Make sure the slide stays in its container area when zooming out
-		if (pos.x > 0)
-			pos.x = 0
-		if (pos.x + size.w * scale < size.w)
-			pos.x = -size.w * (scale - 1)
-		if (pos.y > 0)
-			pos.y = 0
-		if (pos.y + size.h * scale < size.h)
-			pos.y = -size.h * (scale - 1)
-
-		update()
-	}
-
-	function update() {
-		target.css('transform', 'translate(' + (pos.x) + 'px,' + (pos.y) + 'px) scale(' + scale + ',' + scale + ')')
-	}
-}
-
-
-function showSearchDialog() {
-	$("#searchDialog")[0].showModal();
-
-}
-
-$(document).ready(function () {
-	showSearchDialog();
-});
-
-new ScrollZoom($('#content'), 4, 0.5)*/
+*/

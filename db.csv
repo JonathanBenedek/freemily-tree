@@ -1,0 +1,430 @@
+id,First name,Last name,parent1,parent2,spouse,picture,comments
+1,Jonathan,benedek,2,3,,,comments
+2,Joel,Benedek,5,6,3,,comments
+3,Naomi,Benedek,178,179,2,,1950-2012
+4,Nadav,Benedek,2,3,30,,
+5,Rachel,Schwartz,12,13,6,,
+6,Moshe,Benedek,100,101,5,,
+7,Margalit,Benedek,6,5,8,,
+8,Arik,Raz,,,7,,
+9,Elad,Raz,8,7,,,
+10,Matan,Raz,8,7,,,
+11,Nurit,Raz,7,8,,,
+12,Izchak,Schwartz,137,138,13,,
+13,Perl,lilinfeld,25,26,12,,1924-
+14,Eva,Schwartz,12,13,15,,
+15,Moti,Benedek,,,14,,1947 -
+16,Paul-zeav,Benedek,15,14,17,,
+17,Larisa,,,,16,,1973
+18,Doron,Benedek,17,16,,,1975
+19,Gili,Benedek,17,16,,,1955
+20,Lea,Benedek,15,14,21,,
+21,Noam,Shachar,,,20,,1989
+22,Nitzan,Shachar,21,20,,,1985
+23,Meital,Shachar,20,21,,,1981
+24,Itamar,Shachar,20,21,,,
+25,Malca,Wiess,27,,26,,1843 - 1936
+26,Yosef,Lilinfeld,,,25,,1916
+27,Rachel,Weiss,,,,,1891 -
+28,Roza,Lilinfeld,25,26,29,,
+29,Itzhak,Fisher,,,28,,1888
+30,Limor,Spector,419,420,4,,
+31,Alomg,Benedek,30,4,,,
+32,Niv,Benedek,4,30,,,
+33,Harmin,Lilinfeld,25,26,,,1889 - 
+34,Liosh,Lilinfeld,25,26,35,,
+35,Serna,Doitch,,,34,,
+36,No Lilinfeld ,Doitch,35,34,,,
+37,No Lilinfeld1 ,,34,35,,,1943 -
+38,No Lilinfeld2 ,,34,35,,,1910-1943
+39,Bez'i,Lilinfeld,34,35,,,1912 - 
+40,Eilosh,Lilinfeld,34,35,41,,
+41,Gentile,,,,40,,
+42,Lea,Lilinfeld,40,41,,,1943 -
+43,Mogda,Fisher,28,29,44,,
+44,Klman,Schwartz,,,43,,
+45,She doesn't,Schwartz,44,43,,,1943 -
+46,Olga,Fisher,28,29,47,,
+47,Miklosh,Leibowitz,,,46,,
+48,She doesn't,Leibowitz,46,47,,,
+49,He doesn't,Leibowitz,46,47,,,
+50,Klari,Fisher,28,29,51,,
+51,Armin,Lichtman,,,50,,
+52,She,Lichtman,51,50,,,
+53,Irena,Lichtman,28,29,,,1897 -
+54,Lipot,Lilinfeld,25,26,55,,
+55,Roza,Frenkel,,,54,,1928
+56,Yosef,Lilinfeld,55,54,57,,
+57,Klari,,,,56,,
+58,Eva,Lilinfeld,57,56,59,,
+59,Paul,,,,58,,
+60,Unknown,Paul,58,59,,,
+61,Anna,Lilinfeld,57,56,62,,
+62,Unknown,,,,61,,
+63,Unknown,Unknown,62,61,,,
+64,Izchak,Lilinfeld,25,26,65,,
+65,She no,,,,64,,
+66,Evelyn,Lilinfeld,64,65,,,
+67,Dorti,Lilinfeld,64,65,,,
+68,Marton,Lilinfeld,25,26,,,
+69,Yolan,Lilinfeld,25,26,,,
+70,Shnedor,Lilinfeld,25,26,71,,
+71,Maria,,,,70,,Living: Haifa
+72,Anna,Lilinfeld,71,70,,,
+73,Karol,Lilinfeld,25,26,,,
+74,Leofuld,Lilinfeld,25,26,,,
+75,Abraham,Lilinfeld,25,26,76,,
+76,Helen,,,,75,,
+77,Mrgit,Lilinfeld,76,75,,,
+78,Elizabeth,Lilinfeld,76,75,79,,
+79,Frenk,,,,78,,
+80,Stela,Frank,79,78,81,,
+81,Vladi,Israel,,,80,,
+82,Aviva,Israel,80,81,83,,
+83,Moshe,Shabi,,,82,,
+84,Dotan,Shabi,83,82,,,
+85,Gza,Lilinfeld,76,75,86,,
+86,Olga,,,,85,,
+87,Avi,Lilinfeld,86,85,,,
+88,Pril,Lilinfeld,76,75,89,,
+89,Robert,Hirsh,,,88,,1946-
+90,Shoshana,Hirsh,89,88,91,,
+91,Ori,Nave,,,90,,1965
+92,Ronit,Nave,90,91,93,,
+93,Sharon,Libhber,,,92,,2001
+94,Yael,Libhber,93,92,,,1998
+95,Tal,Libhber,93,92,,,1970
+96,Tami,Nave,91,90,97,,
+97,Shlomi,Ben simchon,,,96,,1996
+98,Guy,Simhcon,97,96,,,1999
+99,Nadav,Simhcon,96,97,,,
+100,Aharon,Benedek,,,101,,1930 - 
+101,Maria,Burger,,,100,,
+102,Liosh,Benedek,100,101,103,,
+103,Son1,Benedek,,,102,,
+104,Daughter1,Benedek,102,103,,,
+105,Yoel,Benedek,100,101,106,,
+106,Mogda,,,,105,,1912-1995
+107,Shoni,Benedek,100,101,108,,
+108,Katerina,Shlzinger,,,107,,
+109,Hagit,Benedek,107,108,110,,
+110,Haim,Helman,,,109,,
+111,Ronit,Helman,109,110,112,,
+112,Zvika,Hens,,,111,,
+113,Shelly,Hens,111,112,,,
+114,Son Unknown,Hens,111,112,,,
+115,Mika,Helman,110,109,,,
+116,Eyal,Helman,109,110,,,1953 -
+117,David paul,Benedek,107,108,118,,
+118,Nurit,Cohen,,,117,,1985 -
+119,Ben,Benedek,117,118,,,1977 -
+120,Michal,Benedek,118,117,,,1916 - 1966
+121,jully,Benedek,101,100,122,,
+122,Anna,,,,121,,
+123,Nelo,Benedek,121,122,,,
+124,Nico,Benedek,121,122,,,
+125,Anna,Benedek,101,100,126,,
+126,Burmer,,,,125,,
+127,Lily,Benedek,126,125,128,,
+128,Lizi,Weiss,,,127,,
+129,Eva,Weiss,127,128,132,,
+130,Anna,Weiss,127,128,131,,
+131,No,,,,130,,
+132,No,,,,129,,
+133,No1,,131,130,,,
+134,No2,,130,131,,,
+135,No3,,131,130,,,
+136,Silvi,,,,146,,1968 -
+137,Unknown,Schwartz,,,138,,
+138,Rachel,,,,137,,
+139,Brly,Schwartz,138,137,140,,
+140,Roza,Schwartz,,,139,,
+141,Chaya,Schwartz,139,140,142,,1928 -
+142,Meir,Hochberg,,,141,,1952 -
+143,Yigal,Hochberg,142,141,144,,
+144,Elisheva,Halevi,,,143,,
+145,Limor,Hohcberg,144,143,,,1957 -
+146,Gonen,Hohcberg,141,142,136,,1995 - 
+147,Noa,Hochberg,136,146,,,1996 - 
+148,Anael,Hochberg,146,136,,,1998 -
+149,Mayan,Hochberg,136,146,,,1954 - 
+150,Gilla,Hochberg,141,142,151,,
+151,Izik,Sholner,,,150,,1979 - 
+152,Adi,Sholner,151,150,,,1981 - 
+153,Ori,Sholner,150,151,,,1990
+154,Itay,Sholner,151,150,,,1990 -
+155,Anat,Hochberg,143,144,,,
+156,Dan,Hohcberg,143,144,,,1992-
+157,Liosh,Schwartz,138,137,158,,
+158,Mlbin,,,,157,,
+159,Moriz,Schwartz,138,137,,,
+160,Hermin,Schwartz,138,137,,,
+161,Unknwon1,Schwartz,138,137,162,,
+162,No1,Rot,,,161,,
+163,Bertzi,Rot,161,162,164,,
+164,Lea,,,,163,,
+165,Shola,Rot,164,163,166,,
+166,Yosi,,,,165,,
+167,Meirav,,166,165,,,
+168,Hagar,,166,165,,,
+169,Tzvi,Rot,164,163,170,,
+170,No1,,,,169,,
+171,Daughter1,Rot,170,169,,,
+172,Son1,Rot,170,169,,,
+173,Eva,Schwartz,140,139,,,1930 - 
+174,Wyloi (z'ev),Schwartz,140,139,,,1925-
+175,Ema,Schwartz,140,139,,,1932-
+176,Olodar,Schwartz,140,139,,,
+177,Eti,Schwartz,140,139,,,
+178,Menachem,Onger,180,181,179,,1906-1984
+179,Tova,Monshine,265,266,178,,1913 - 1975
+180,Pseia,Onger,,,181,,
+181,Ben zion,Shraiber,254,,180,,
+182,Shmoel,On,178,179,183,,1948 - 2019
+183,Rochale,,,,182,,1953
+184,Hagai,On,183,182,428,,1976-
+185,Oded,On,182,183,429,,1979
+186,Eyal,On,183,182,,,1989
+187,Gil,On,182,183,,,1990
+188,Mini,Shraiber,180,181,189,,
+189,Unknown,Shapiro,,,188,,
+190,Paula,Shapiro,189,188,191,,
+191,Tovia,Markovitz,,,190,,
+192,Pinechas,Markovitz,191,190,,,1971-
+193,David,Markovitz,191,190,,,1973
+194,Adina,Markovitz,191,190,,,1976
+195,Itzhak,,194,,,,
+196,Hanna,Shraiber,180,181,197,,
+197,Max,Shternlicht,,,196,,
+198,Ella,Shternlicht,196,197,,,1944-
+199,Ester,Shraiber,180,181,200,,
+200,Itzhak,Rogway,,,199,,
+201,Paul,Rogway,199,200,202,,
+202,Debbi,Rogway,,,201,,
+203,Sara,Rogway,201,202,208,,
+204,Shemon,Rogway,201,202,,,
+205,Michaela,Rogway,201,202,,,
+206,Miri,Rogway,201,202,,,
+207,Ben zion,Rogway,201,202,,,
+208,Meir,Levkovizh,,,203,,
+209,Tovia,Levkovizh,203,208,,,
+210,Jerry,Rogway,199,200,211,,
+211,Jan,,,,210,,
+212,Sidny,Rogway,210,211,,,
+213,Shery,Rogway,210,211,214,,
+214,Paul,Robins,,,213,,
+215,Nitza,Robins,214,213,,,
+216,Yossef,Robins,213,214,,,
+217,Kely,Robins,214,213,,,
+218,Bert,Rogway,199,200,219,,
+219,Doris,,,,218,,
+220,Lori,Rogway,219,218,,,
+221,Jeff,Rogway,218,219,,,
+222,Yossef,Shraiber,180,181,223,,
+223,Tony,Shraiber,,,222,,
+224,David,Onger,180,181,,,
+225,Chaymi,Shraiber,222,223,226,,
+226,Gyebi,Hirsh,,,225,,1938
+227,Jeckie,Shriber,225,226,,,
+228,Julia,Shriber,227,,,,1994
+229,Karen,Shriber,226,225,230,,
+230,Jeff,Unknwon,,,229,,
+231,Itzhak,Shraiber,180,181,232,,
+232,Amy,Shraiber,,,231,,
+233,Meni,Shraiber,231,232,234,,
+234,Rita,Shraiber,,,233,,
+235,Alisheva,Shraiber,233,234,236,,1973
+236,Shemon,Sigal,,,235,,
+237,Avraham,Shriber,233,234,,,1969
+238,Debi,Shriber,233,234,239,,1967
+239,Karmi,Shapira,,,238,,1963
+240,Itzhak,Shapira,238,239,,,
+241,Ze'v,Shapira,239,238,,,
+242,Elimelech,Shapira,239,238,,,
+243,Moshe,Shapira,239,238,,,
+244,Bracha,Shapira,239,238,,,
+245,Shoshana,Shraiber,234,233,246,,1964
+246,Yosef,Bekhoper,,,245,,
+247,Noam,Bekhoper,245,246,,,
+248,Natanel,Bekhoper,245,246,,,
+249,Daniel,Bekhoper,245,246,,,
+250,Yuda,Bekhoper,245,246,,,1989
+251,Itzchk,Bekhoper,245,246,,,
+252,Wiliam,Shraiber,232,231,253,,
+253,Mrom,Unknown,,,252,,
+254,Unknown,Shraiber,,,,,
+255,Leon,Shraiber,254,,256,,
+256,Blanka,Unknown,,,255,,
+257,Arena,Shraiber,255,256,258,,1923-1972
+258,Norbert,Wastrich,,,257,,1921 -
+259,Ilana,Wastraich,258,257,260,,1947
+260,Yair,Lanir,,,259,,
+261,Liran,Lanir,260,259,,,
+262,Amit,Lanir,260,259,,,
+263,Roni,Lanir,260,259,,,1986
+264,Unknown-She,Shriber,256,255,,,
+265,Sara,Moonshine,318,319,266,,1894
+266,Shmoel,Wishnizer,,,265,,
+267,Hershal,Moonshine,265,266,268,,
+268,Gertal,,,,267,,
+269,Mandel,Moonshine,265,266,270,,
+270,Lony,,,,269,,
+271,Shmoel,Moonshine,270,269,,,
+272,Son,Moonshine,270,269,,,
+273,Ester,Moonshine,266,265,274,,1894-
+274,Penchas,Frisher,,,273,,1890 -
+275,Edek,Frisher,274,273,276,,1919 -
+276,Ester,Moonshine,,,275,,1924 -
+277,Ahova,Frisher,275,276,278,,1949 -
+278,Hanoch,Pe'er,,,277,,1946 -
+279,Guy,Pe'er,277,278,280,,1972 -
+280,Ronit,Shalem,,,279,,1974 -
+281,Liat,Pe'er,278,277,,,1975 -
+282,Elad,Pe'er,278,277,,,1980 - 
+283,Nurit,Frisher,276,275,284,,1953 -
+284,Klodi,Alon,,,283,,1948 -
+285,Anat,Alon,284,283,286,,1975
+286,Eyal,Afek,,,285,,1974
+287,Tal,Alon,284,283,,,1975 -
+288,Dan,Alon,284,283,,,1986
+289,Irit,Frisher,276,275,,,1953 - 
+290,Pola,Frisher,273,274,291,,
+291,Avraham,Solomon,,,290,,
+292,Richard ,Solomon,291,290,293,,1945 -
+293,Raichel,Goldberg,,,292,,1947 - 
+294,Eva,Solomon,292,293,,,1973 -
+295,Mark,Solomon,292,293,,,1977 -
+296,Henk,Frisher,273,274,297,,1922 -
+297,Blima,,,,296,,1926 - 
+298,Estar,Frisher,296,297,299,,1948 -
+299,Alexander,Lion,,,298,,
+300,Ayme,Lion,299,298,,,1969 - 
+301,Melisa,Lion,299,298,,,
+302,Jesica,Lion,298,299,,,
+303,Rebekah,Lion,299,298,,,
+304,Poul,Frisher,296,297,305,,
+305,Naomi,,,,304,,
+306,Alexis,Frisher,305,304,,,
+307,Rabin,Frisher,304,305,,,
+308,Amenda,Frisher,305,304,,,
+309,Mishel,Frisher,304,305,,,
+310,Chnka,Frisher,273,274,311,,
+311,Tzvi,Berg,,,310,,1923 - 1993 
+312,Miri,Berg,311,310,,,1963 -
+313,Avi,Berg,311,310,314,,1953 -
+314,Tali,,,,313,,1957 -
+315,Omri,Berg,314,313,,,1990 - 
+316,Daniel,Berg,314,313,,,1986
+317,Yaniv,Berg,314,313,,,1982 - 
+318,Ester,,,,319,,
+319,Yosef,Shmil Moonshine,407,408,318,,
+320,Brish,Moonshine,318,319,321,,
+321,Mirel,Horowitz,,,320,,
+322,Moshe,Moonshine,321,320,323,,1926 -
+323,Yati,,,,322,,1892 - 
+324,Tzasha,Moonshine,322,323,,,1928 -
+325,Mendek,Moonshine,323,322,326,,1926 -
+326,Eva,,,,325,,
+327,Mishel,Moonshine,326,325,328,,
+328,Evelin,,,,327,,
+329,unknwon1,Moonshine,328,327,,,
+330,unknwon2,Moonshine,327,328,,,
+331,Ester,Moonshine,322,323,,,
+332,Naftali,Moonshine,322,323,,,1923 -
+333,Hannah,Moonshine,320,321,334,,
+334,Unknown,Zagorski,,,333,,
+335,Albert,Zagorski,333,334,336,,
+336,Dina,,,,335,,
+337,Kati,Zagorski,335,336,,,
+338,Ani,Zagorski,335,336,,,
+339,Unknown,Zagorski,337,,,,
+340,Regina,Zagorski,334,333,341,,
+341,Unknown,Zinger,,,340,,
+342,Yossef Shmil,Zagorski,333,334,343,,
+343,Unknown,,,,342,,
+344,Unknown2,Zagorski,342,343,,,
+345,Unknwon2,Zagorski,343,342,,,
+346,Bernard,Zagorski,333,334,347,,
+347,Roz,,,,346,,
+348,Ester,Zagorski,334,333,349,,
+349,Unknown,Unknown,,,348,,
+350,Melvin,Unknown,349,348,,,
+351,Herold,Unknown,348,349,,,
+352,Chanke,Zagorski,334,333,353,,
+353,Ori,Varnier,,,352,,
+354,Rozin,Varnier,353,352,,,
+355,Edi,Varnier,352,353,,,
+356,Layv,Zagorski,334,333,,,
+357,Unknown,Zagorski,333,334,,,
+358,Unknown1,Zagorski,333,334,,,
+359,Chaim,Moonshine,321,320,360,,1886 - 
+360,No1,,,,359,,
+361,No1,Moonshine,360,359,,,
+362,No2,Moonshine,360,359,,,
+363,No3,Moonshine,360,359,,,
+364,Dvora,Moonshine,360,359,,,
+365,Ya'akov,Moonshine,320,321,366,,
+366,Nachtze,,,,365,,
+367,Yossef,Moonshine,365,366,,,
+368,Chayka,Moonshine,365,366,369,,
+369,Alex,Shmit,,,368,,
+370,Jeki,Shmit,368,369,371,,
+371,Keren,,,,370,,
+372,David,Shmit,370,371,,,
+373,Mishel,Shmit,370,371,,,
+374,Jo,Shmit,369,368,,,
+375,Ester,Moonshine,365,366,,,
+376,Mandel,Moonshine,320,321,377,,1890 - 
+377,Sara,,,,376,,
+378,Ester,Moonshine,377,376,,,
+379,Bernard,Moonshine,376,377,,,
+380,Dvora,Moonshine,376,377,,,
+381,T'zanke,Moonshine,377,376,382,,
+382,Hirsh,Roza,,,381,,
+383,Maikel,Roza,382,381,,,
+384,Sozan,Roza,381,382,385,,
+385,No,Unknown,,,384,,
+386,No1,Unknown,384,385,,,
+387,No2,Unknown,384,385,,,
+388,Ester,Moonshine,321,320,389,,
+389,Ksill,Fridman,,,388,,
+390,No1,Fridman,388,389,,,
+391,No2,Fridman,388,389,,,
+392,No3,Fridman,388,389,,,
+393,Bronka,Fridman,388,389,394,,
+394,Robert,Dninski,,,393,,
+395,Jeni,Dninski,394,393,,,
+396,Elian,Dninski,394,393,397,,
+397,Klodi,Unknown,,,396,,
+398,Unknown1,Unknown,397,396,,,
+399,Unknown2,Unknown,397,396,,,
+400,Barak,Fridman,388,389,401,,
+401,Jeni,,,,400,,
+402,Evelin,Fridman,401,400,,,
+403,Sharsh,Fridman,400,401,,,
+404,Dvora,Moonshine,321,320,405,,
+405,No,Unknown,,,404,,
+406,No1,Unknown,405,404,,,
+407,Chaim,Horovitz,,,408,,
+408,Unknown,,,,407,,
+409,Abraham,Moonshine,407,408,410,,
+410,Unknown,,,,409,,
+411,Shmil,Moonshine,410,409,,,
+412,No1,Moonshine,409,410,,,
+413,Brish,Moonshine,410,409,414,,
+414,Unknown,,,,413,,
+415,Froma,Moonshine,414,413,,,
+416,Bishof,Moonshine,410,409,,,
+417,Mirel,Moonshine,409,410,,,
+418,Test,Testy,,,,,empty comment
+419,Haviv,Vivyorka,421,,420,,
+420,Dudi,Spector,,,419,,
+421,Shula,Vivyorka,,,,,
+422,Linoy,Spector,419,420,426,,
+423,Lihen,Spector,419,420,427,,
+424,Liraz,Spector,419,420,,,
+425,Ofek,Spector,419,420,,,
+426,Nir,Feinberg,,,422,,
+427,Tomer,Baruch,,,423,,
+428,Abby,?,,,184,,
+429,Abby,?,,,185,,

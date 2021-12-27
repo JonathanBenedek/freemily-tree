@@ -1,3 +1,6 @@
+// @ts-nocheck
+
+
 
 //			https://docs.google.com/spreadsheets/d/13D2fRpETQ4EIMDAI0SMNV4QmfNo4pw6hG2s-PYfLY-Y/edit?usp=sharing
 
@@ -11,16 +14,6 @@ var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
 var authorizeButton = document.getElementById('authorize_button');
 var signoutButton = document.getElementById('signout_button');
-
-
-
-/**
- *  On load, called to load the auth2 library and API client library.
- */
-function handleClientLoad() {
-	gapi.load('client:auth2', initClient);
-}
-
 
 
 /**
@@ -53,13 +46,18 @@ function initClient() {
  */
 function updateSigninStatus(isSignedIn) {
 	if (isSignedIn) {
+		isUserSignIn = true;
 		hideAuthDialog();
 		//authorizeButton.style.display = 'none';
 		signoutButton.style.display = 'block';
 		//listMajors();
+		continueAfterUserAuthorized();
+
 	} else {
+		isUserSignIn = false ; 
 		authorizeButton.style.display = 'block';
 		signoutButton.style.display = 'none';
+		showAuthDialog();
 	}
 }
 
