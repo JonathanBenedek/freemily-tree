@@ -1,13 +1,83 @@
-body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td { margin:0; padding:0; }
-table { border-collapse:collapse; border-spacing:0; }
-fieldset,img { border:0; }
-address,caption,cite,code,dfn,em,strong,th,var { font-style:normal; font-weight:normal; }
-caption,th { text-align:left; }
-h1,h2,h3,h4,h5,h6 { font-size:100%; font-weight:normal; }
-q:before,q:after { content:''; }
-abbr,acronym { border:0; }
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+form,
+fieldset,
+input,
+textarea,
+p,
+blockquote,
+th,
+td {
+    margin: 0;
+    padding: 0;
+}
 
-body { background: #fff; }
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+fieldset,
+img {
+    border: 0;
+}
+
+address,
+caption,
+cite,
+code,
+dfn,
+em,
+strong,
+th,
+var {
+    font-style: normal;
+    font-weight: normal;
+}
+
+caption,
+th {
+    text-align: left;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: 100%;
+    font-weight: normal;
+}
+
+q:before,
+q:after {
+    content: '';
+}
+
+abbr,
+acronym {
+    border: 0;
+}
+
+body {
+    background: #fff;
+}
+
+
 /* optional Container STYLES */
 .chart { margin: 5px; overflow: visible;}
 .Treant > .node {  }
@@ -20,18 +90,18 @@ body { background: #fff; }
     -moz-border-radius: 3px;
     border-radius: 3px;
     background-color: #ffffff;
-   /* border: 1px solid #000;*/
+    /* border: 1px solid #000;*/
     width: 300px;
     font-family: Tahoma;
-	font-size: 12px;
-	display: "flex";
-	margin-top: 4px;
-	/*box-shadow: 2px 2px 14px gray;*/
+    font-size: 12px;
+    display: "flex";
+    margin-top: 4px;
+    /*box-shadow: 2px 2px 14px gray;*/
 }
 
 .containerAddPerson {
-	margin-left: 26px;
-	flex-grow: 1;
+    margin-left: 26px;
+    flex-grow: 1;
 }
 
 .dragscroll {
@@ -40,19 +110,32 @@ overflow: scroll;
 /*width: 1600px;
 height: 600px;*/
 
-padding: 20px;
-cursor : -webkit-grab;
-cursor : -moz-grab;
-cursor : -o-grab;
-cursor : grab;
-margin: 30px auto;
+@media (min-width:1025px) {
+    .PersonContainerWithSpouse {
+        width: 50%;
+    }
+    .PersonContainerNoSpouse {
+        width: 200px
+    }
+}
+
+.dragscroll {
+    flex-grow: 1;
+    width: 1600px;
+    height: 600px;
+    padding: 20px;
+    cursor: -webkit-grab;
+    cursor: -moz-grab;
+    cursor: -o-grab;
+    cursor: grab;
+    margin: 30px auto;
 }
 
 .dragscroll:active {
- cursor : -webkit-grabbing;
- cursor : -moz-grabbing;
- cursor : -o-grabbing;
- cursor : grabbing;
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+    cursor: -o-grabbing;
+    cursor: grabbing;
 }
 
 .containerPerson {
@@ -61,17 +144,17 @@ margin: 30px auto;
     -moz-border-radius: 3px;
     border-radius: 3px;
     background-color: #ffffff;
-   border: 1px solid rgba(0, 0, 0, 0.5);
-    width: 400px;
+    border: 1px solid rgba(0, 0, 0, 0.5);
     font-family: Tahoma;
-	font-size: 12px;
-	display: "flex";
-	box-shadow: 2px 2px 14px gray;
-	/*margin-top: 4px;*/
-	justify-content: flex-end;
-	display: flex;
-	flex-direction: column;
+    font-size: 12px;
+    display: "flex";
+    box-shadow: 2px 2px 14px gray;
+    /*margin-top: 4px;*/
+    justify-content: flex-end;
+    display: flex;
+    flex-direction: column;
 }
+
 .nodeExample1 img {
-    margin-right:  10px;
+    margin-right: 10px;
 }
