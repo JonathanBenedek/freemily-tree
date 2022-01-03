@@ -155,12 +155,20 @@ function addParentToChildToSheet(childId, value, cb, parent) {
     editCell(value, range, cb);
 }
 function addSpouseToSheets(rowRange, bodyFirstName, cb) {
-    var bodyrequest = ("object" == typeof bodyFirstName) ? bodyFirstName : { values: [[bodyFirstName]] };
+    var bodyrequest = ("object" == typeof bodyFirstName) ? bodyFirstName : {
+        values: [
+            [bodyFirstName]
+        ]
+    };
     var range = "F" + rowRange;
     editCell(bodyrequest, range, cb);
 }
 function addCommentToSheets(rowRange, bodyFirstName, cb) {
-    var bodyrequest = ("object" == typeof bodyFirstName) ? bodyFirstName : { values: [[bodyFirstName]] };
+    var bodyrequest = ("object" == typeof bodyFirstName) ? bodyFirstName : {
+        values: [
+            [bodyFirstName]
+        ]
+    };
     var range = "H" + rowRange;
     editCell(bodyrequest, range, cb);
 }
@@ -189,16 +197,24 @@ function addChildToParent(event) {
     addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, person.id, parseInt(person.spouse), commentsChild);
     var range = "";
     var bodyId = {
-        values: [[idChild]]
+        values: [
+            [idChild]
+        ]
     };
     var bodyFirstName = {
-        values: [[firstNameChild]]
+        values: [
+            [firstNameChild]
+        ]
     };
     var bodyLastName = {
-        values: [[lsatNameChild]]
+        values: [
+            [lsatNameChild]
+        ]
     };
     var bodyParent1 = {
-        values: [[person.id]]
+        values: [
+            [person.id]
+        ]
     };
     rowRange = 1 + idChild;
     range = "A" + (rowRange);
@@ -209,7 +225,9 @@ function addChildToParent(event) {
     addCommentToSheets(rowRange, commentsChild);
     if (person.spouse) {
         var bodyParent2 = {
-            values: [[localDataBase[parseInt(person.spouse)].id]]
+            values: [
+                [localDataBase[parseInt(person.spouse)].id]
+            ]
         };
         addParentToChildToSheet(idChild, bodyParent2);
     }
@@ -228,19 +246,29 @@ function addSpouse(event) {
     addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpouse, person.id, commentsSpouse);
     var range = "";
     var bodyId = {
-        values: [[idSpouse]]
+        values: [
+            [idSpouse]
+        ]
     };
     var bodyFirstName = {
-        values: [[firstNameSpouse]]
+        values: [
+            [firstNameSpouse]
+        ]
     };
     var bodyLastName = {
-        values: [[lsatNameParentSpouse]]
+        values: [
+            [lsatNameParentSpouse]
+        ]
     };
     var bodySpouse = {
-        values: [[idSpouse]]
+        values: [
+            [idSpouse]
+        ]
     };
     var bodyIdPerson = {
-        values: [[person.id]]
+        values: [
+            [person.id]
+        ]
     };
     rowRange = 1 + idSpouse;
     range = "A" + (rowRange);
@@ -256,7 +284,9 @@ function addSpouse(event) {
         children.forEach(function (child) {
             addParentToChildLocalDataBase(idSpouse, null, null, child);
             var value = {
-                values: [[idSpouse]]
+                values: [
+                    [idSpouse]
+                ]
             };
             addParentToChildToSheet(child, value);
         });
@@ -268,11 +298,9 @@ function addSpouse(event) {
     buttonSavePerson.removeEventListener("click", addSpouse);
 }
 function connectSpouseRelationshipByChildRemoteStorageSheets(chidId, spouseId) {
-    parentId = (localDataBase[chidId].parent1 && localDataBase[chidId].parent1 != spouseId) ? (localDataBase[chidId].parent1)
-        :
-            ((localDataBase[chidId].parent2 && localDataBase[chidId].parent2 != spouseId) ? localDataBase[chidId].parent2
-                :
-                    null);
+    parentId = (localDataBase[chidId].parent1 && localDataBase[chidId].parent1 != spouseId) ? (localDataBase[chidId].parent1) :
+        ((localDataBase[chidId].parent2 && localDataBase[chidId].parent2 != spouseId) ? localDataBase[chidId].parent2 :
+            null);
     if (parentId) {
         addSpouseToSheets((parseInt(parentId) + 1).toString(), spouseId);
         addSpouseToSheets((parseInt(spouseId) + 1).toString(), parentId);
@@ -286,11 +314,9 @@ function connectSpousesLocalDatabase(spouse1, spouse2) {
     localDataBase[spouse2].spouse = spouse1;
 }
 function connectSpouseRelationshipByChildLocalDatabase(chidId, spouseId) {
-    parentId = (localDataBase[chidId].parent1 && localDataBase[chidId].parent1 != spouseId) ? (localDataBase[chidId].parent1)
-        :
-            ((localDataBase[chidId].parent2 && localDataBase[chidId].parent2 != spouseId) ? localDataBase[chidId].parent2
-                :
-                    null);
+    parentId = (localDataBase[chidId].parent1 && localDataBase[chidId].parent1 != spouseId) ? (localDataBase[chidId].parent1) :
+        ((localDataBase[chidId].parent2 && localDataBase[chidId].parent2 != spouseId) ? localDataBase[chidId].parent2 :
+            null);
     if (parentId) {
         connectSpousesLocalDatabase(parentId, spouseId);
     }
@@ -307,16 +333,24 @@ function addParentToChild(event) {
     addParentToChildLocalDataBase(idParent, firstNameParent, lsatNameParent, child.id, commentsParent);
     var range = "";
     var bodyId = {
-        values: [[idParent]]
+        values: [
+            [idParent]
+        ]
     };
     var bodyFirstName = {
-        values: [[firstNameParent]]
+        values: [
+            [firstNameParent]
+        ]
     };
     var bodyLastName = {
-        values: [[lsatNameParent]]
+        values: [
+            [lsatNameParent]
+        ]
     };
     var bodyComments = {
-        values: [[commentsParent]]
+        values: [
+            [commentsParent]
+        ]
     };
     rowRange = 1 + idParent;
     range = "A" + (rowRange);
@@ -327,7 +361,9 @@ function addParentToChild(event) {
     editCell(bodyLastName, range);
     addCommentToSheets(rowRange, bodyComments);
     var value = {
-        values: [[idParent]]
+        values: [
+            [idParent]
+        ]
     };
     addParentToChildToSheet(child.id, value, function () {
         connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
@@ -414,12 +450,18 @@ function randerUpTree(event) {
     chart_config = temp;
     var event = { target: { id: "build_tree_parents_button", who: event.target.value } };
     buildTree(event);
+    window.setTimeout(scrollToCenter, 1000);
+}
+function scrollToCenter() {
+    var currntId = "containerPerson_" + chart_config[1].button.id;
+    document.getElementById(currntId).scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
 }
 function randerDownTree(event) {
     var temp = chart_config.slice(0, 1);
     chart_config = temp;
     var event = { target: { id: "build_tree_children_button", who: event.target.value } };
     buildTree(event);
+    window.setTimeout(scrollToCenter, 1000);
 }
 function saveCommentsToSheet() {
     var commentsField = document.getElementById("commentsField");
@@ -436,13 +478,15 @@ function handleButtonEditClick(event) {
     }
     dialog.showModal();
     var body = {
-        values: [["dfvdsv"]]
+        values: [
+            ["dfvdsv"]
+        ]
     };
 }
 var handleButtonsMaping = {
     addButton: handleButtonEditClick,
-    showUpTree: { onClick: randerUpTree, label: ".\\..\\resources\\icons\\up.svg" },
-    showDownTree: { onClick: randerDownTree, label: ".\\..\\resources\\icons\\down.svg" }
+    showUpTree: { onClick: randerUpTree, label: ".\\resources\\icons\\up.svg" },
+    showDownTree: { onClick: randerDownTree, label: ".\\resources\\icons\\down.svg" }
 };
 function getSpouseIdById(id) {
     var spouse = (localDataBase[id].spouse) ? localDataBase[id].spouse : null;
@@ -834,11 +878,13 @@ function listMajorsApi4(sheetId) {
             console.log(err);
             document.getElementById("error_sheetUrl").classList.remove("hidden");
             document.getElementById("error_sheetUrl").classList.add("shown");
+            reject(err);
             return;
         })["catch"](function (err) {
             console.log(err);
             document.getElementById("error_sheetUrl").classList.remove("hidden");
             document.getElementById("error_sheetUrl").classList.add("shown");
+            reject(err);
             return;
         });
     });
@@ -853,25 +899,24 @@ function readFromGoogleSheets(sheetIdInput) {
         });
     });
 }
-function loadFamilyTree(sheetIdInput) {
+function loadFamilyTree(dataArray) {
     return __awaiter(this, void 0, void 0, function () {
-        var dataArray, i;
+        var i;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4, readFromGoogleSheets(sheetIdInput)];
-                case 1:
-                    dataArray = _a.sent();
-                    for (i = 0; i < dataArray.length; i++) {
-                        insertNewRowToLocalDataBase(dataArray[i]);
-                    }
-                    for (personId in localDataBase) {
-                        insertDataBottomUp(parseInt(personId));
-                        insertDataUpBottom(parseInt(personId));
-                    }
-                    callbackLoadFamilyTreeSuccess();
-                    hideWellcomeDialog();
-                    return [2];
+            if (dataArray) {
+                for (i = 0; i < dataArray.length; i++) {
+                    insertNewRowToLocalDataBase(dataArray[i]);
+                }
+                for (personId in localDataBase) {
+                    insertDataBottomUp(parseInt(personId));
+                    insertDataUpBottom(parseInt(personId));
+                }
             }
+            else {
+            }
+            callbackLoadFamilyTreeSuccess();
+            hideWellcomeDialog();
+            return [2];
         });
     });
 }

@@ -3,32 +3,39 @@ var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 var authorizeButton = document.getElementById('authorize_button');
 var signoutButton = document.getElementById('signout_button');
 function initClient() {
-    gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES
-    }).then(function () {
-        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-        authorizeButton.onclick = handleAuthClick;
-        signoutButton.onclick = handleSignoutClick;
-    })["catch"](function (err) {
-        console.log(err);
+    return new Promise(function (reslove, reject) {
+        gapi.client.init({
+            apiKey: API_KEY,
+            clientId: CLIENT_ID,
+            discoveryDocs: DISCOVERY_DOCS,
+            scope: SCOPES
+        }).then(function () {
+            function priveteUpdateSigninStatus(isSignedIn) {
+                updateSigninStatus(isSignedIn, reslove);
+            }
+            gapi.auth2.getAuthInstance().isSignedIn.listen(priveteUpdateSigninStatus);
+            priveteUpdateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), reslove);
+            authorizeButton.onclick = handleAuthClick;
+            signoutButton.onclick = handleSignoutClick;
+        })["catch"](function (err) {
+            console.log(err);
+            reject(err);
+        });
     });
 }
-function updateSigninStatus(isSignedIn) {
+function updateSigninStatus(isSignedIn, resolve) {
     if (isSignedIn) {
         isUserSignIn = true;
         hideAuthDialog();
         signoutButton.style.display = 'block';
-        continueAfterUserAuthorized();
+        resolve(true);
     }
     else {
         isUserSignIn = false;
         authorizeButton.style.display = 'block';
         signoutButton.style.display = 'none';
         showAuthDialog();
+        resolve(false);
     }
 }
 function handleAuthClick(event) {

@@ -1044,11 +1044,13 @@ var data;
 			console.log(err);
 			document.getElementById("error_sheetUrl").classList.remove("hidden");
 			document.getElementById("error_sheetUrl").classList.add("shown");
+			reject(err);
 			return;
 		}).catch((err) => {
 			console.log(err);
 			document.getElementById("error_sheetUrl").classList.remove("hidden");
 			document.getElementById("error_sheetUrl").classList.add("shown");
+			reject(err);
 			return;
 		});
 	 })
@@ -1061,20 +1063,24 @@ async function readFromGoogleSheets(sheetIdInput){
 
 
 
-async function loadFamilyTree(sheetIdInput) {
+async function loadFamilyTree(dataArray) {
 
 	 //const  dataArray = await readCsv();
-	 const dataArray = await readFromGoogleSheets(sheetIdInput);
+	 //const dataArray = await readFromGoogleSheets(sheetIdInput);
+	if (dataArray){
+		for (var i = 0; i < dataArray.length; i++) {
+			insertNewRowToLocalDataBase(dataArray[i]);
+		}
+		for (personId in localDataBase) {
+			insertDataBottomUp(parseInt(personId));
+			insertDataUpBottom(parseInt(personId));
+		}
+	} else {
+		// new table or a problem that not recognaized.
+	}
 
-	 for (var i = 0; i < dataArray.length; i++) {
-		insertNewRowToLocalDataBase(dataArray[i]);
-	}
-	for (personId in localDataBase) {
-		insertDataBottomUp(parseInt(personId));
-		insertDataUpBottom(parseInt(personId));
-	}
-	 callbackLoadFamilyTreeSuccess();
-		hideWellcomeDialog();	 
+	callbackLoadFamilyTreeSuccess();
+	hideWellcomeDialog();	 
 
 }
 

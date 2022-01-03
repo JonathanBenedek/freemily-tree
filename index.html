@@ -52,13 +52,27 @@
 			<button type='button' id="go_to_search"> Search</button>
 			<button type='button' id="zoom_in_button"> Zoom In</button>
 			<button type='button' id="zoom_out_button"> Zoom Out</button>
-
+			<Button type="button" id="connect_csv_button" class="mdl-button">Read from CSV</button>
 	
 		</div>
 	</form>
 
 	</div>
+	
+	<dialog id="choose_db" style="width:400px" class="mdl-dialog">
+		<div style=" margin-left: 20px;  padding:0px;" class="mdl-dialog__content">
+			<p style="font-weight: bold; font-size: 20px;">
+				
+			</p>
+			<p style="sfont-size: 16px;">
+			</p>
+		</div>
+		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+			<Button type="button" id="choose_google_button" class="mdl-button">Google Sheet</button>
+			<Button type="button" id="choose_svg_button" class="mdl-button">Local SVG</button>
 
+		</div>
+	</dialog>
 
 	<dialog id="wellcome_dialog" style="width:400px" class="mdl-dialog">
 		<div style=" margin-left: 20px;  padding:0px;" class="mdl-dialog__content">
@@ -79,7 +93,7 @@
 			</div>
 		</form>
 		<div class="mdl-dialog__actions mdl-dialog__actions--full-width">
-			<Button type="button" id="conect_button" class="mdl-button">Connect</button>
+			<Button type="button" id="conect_button" class="mdl-button">Connect to Google Sheet</button>
 			<Button type="button" id="new_user_button" class="mdl-button">Create New</button>
 
 		</div>
@@ -206,7 +220,7 @@
 
 	<!-- Load our React component. -->
 
-	<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()"
+	<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};start()"
 		onreadystatechange="if (this.readyState === 'complete') this.onload()">
 		</script>
 	<!-- Load React. -->

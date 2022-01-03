@@ -91,12 +91,12 @@
                 return Math.ceil($(element).outerHeight()) + nRoundingCompensation;
             }
             else {
-                return Math.ceil(element.clientHeight
-                    + UTIL.getStyle(element, 'border-top-width', true)
-                    + UTIL.getStyle(element, 'border-bottom-width', true)
-                    + UTIL.getStyle(element, 'padding-top', true)
-                    + UTIL.getStyle(element, 'padding-bottom', true)
-                    + nRoundingCompensation);
+                return Math.ceil(element.clientHeight +
+                    UTIL.getStyle(element, 'border-top-width', true) +
+                    UTIL.getStyle(element, 'border-bottom-width', true) +
+                    UTIL.getStyle(element, 'padding-top', true) +
+                    UTIL.getStyle(element, 'padding-bottom', true) +
+                    nRoundingCompensation);
             }
         },
         getOuterWidth: function (element) {
@@ -108,12 +108,12 @@
                 return Math.ceil($(element).outerWidth()) + nRoundingCompensation;
             }
             else {
-                return Math.ceil(element.clientWidth
-                    + UTIL.getStyle(element, 'border-left-width', true)
-                    + UTIL.getStyle(element, 'border-right-width', true)
-                    + UTIL.getStyle(element, 'padding-left', true)
-                    + UTIL.getStyle(element, 'padding-right', true)
-                    + nRoundingCompensation);
+                return Math.ceil(element.clientWidth +
+                    UTIL.getStyle(element, 'border-left-width', true) +
+                    UTIL.getStyle(element, 'border-right-width', true) +
+                    UTIL.getStyle(element, 'padding-left', true) +
+                    UTIL.getStyle(element, 'padding-right', true) +
+                    nRoundingCompensation);
             }
         },
         getStyle: function (element, strCssRule, asInt) {
@@ -577,8 +577,7 @@
             }
             path.animate({
                 path: pathString.charAt(0) === "_" ?
-                    pathString.substring(1) :
-                    pathString
+                    pathString.substring(1) : pathString
             }, this.CONFIG.animation.connectorsSpeed, this.CONFIG.animation.connectorsAnimation, function () {
                 if (pathString.charAt(0) === "_") {
                     path.hide();

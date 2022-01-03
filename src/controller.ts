@@ -4,14 +4,21 @@
 
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 var paramsFromUrl = {}
+
 const nextSearchButton = document.getElementById('next_search');
 nextSearchButton.onclick = presentNextSearch;
 
 const hideSearchDialogButton = document.getElementById('button_hide_search_dialog');
 hideSearchDialogButton.onclick = closeSearchDiaolog;
 
-const connectToUrlButton = document.getElementById("conect_button");
-connectToUrlButton.onclick = connectToSheetRemote;
+
+var connectToCSVButton = document.getElementById("connect_csv_button");
+connectToCSVButton.onclick = connectToCSV;
+
+var chooseGoogleButton = document.getElementById("choose_google_button");
+
+var chooseSvgButton = document.getElementById("choose_svg_button");
+
 
 const goTOSearchButton = document.getElementById('go_to_search');
 goTOSearchButton.onclick = showSearchDialog;
@@ -61,15 +68,13 @@ function setContentClass(){
 	}
 }
 
-dragscroll
+
 function getParamsFromUrl(){
 	var query = getQueryParams(document.location.search);
 	return query;
 }
 var isUserSignIn = true;
-function handleClientLoad() {
-	gapi.load('client:auth2', initClient);
-}
+
 
 function newUserClicked(){
 	hideWellcomeDialog();
@@ -170,9 +175,30 @@ function showSearchDialog() {
 	$("#search_dialog")[0].showModal();
 }
 
+function hideDbDialog() {
+	$("#choose_db")[0].close()
+}
+
+function chooseDbDialogShow(){
+	return new Promise((resolve, reject) => {
+	$("#choose_db")[0].showModal();
+		chooseSvgButton.onclick = getFromUserCsv;
+		chooseGoogleButton.onclick = getFromUserGoogleSheetId;
+		function getFromUserCsv(){
+			resolve("csv");
+			hideDbDialog();
+		}
+		function getFromUserGoogleSheetId(){
+			resolve("googleSheet");
+			hideDbDialog();
+		}
+	})
+}
+
 function showAuthDialog() {
 	$("#auth_dialog")[0].showModal();
 }
+
 
 function hideAuthDialog() {
 	$("#auth_dialog")[0].close()
@@ -182,6 +208,31 @@ function hideAuthDialog() {
 function showWellcomeDialog() {
 	const wellcomeDialog = document.getElementById('wellcome_dialog');
 	wellcomeDialog.showModal();
+	return new Promise<void>((resolve, reject) => {
+		function connectToSheetRemote(urlParam, rootToSearch) {
+			var url = null;
+			if (typeof urlParam === 'string'){
+				url = urlParam;
+			}else{
+				url = $("#urlSheet").val();
+			}
+			//	URL_SHEET = url
+			//	handleClientLoad();
+			//listMajors(url);
+			resolve(url);
+			//loadFamilyTree(url);
+			//hideWellcomeDialog();
+			$("#urlSheet")[0] = "";
+			if(rootToSearch){
+				doSearch({isParamsFromUrl : true})
+		
+			}
+		}
+
+		const connectToUrlButton = document.getElementById("conect_button");
+		connectToUrlButton.onclick = connectToSheetRemote;
+	})
+
 	//
 	//$("#wellcome_dialog")[0].showModal();
 }
@@ -197,24 +248,11 @@ function callbackLoadFamilyTreeSuccess(){
 	}
 }
 
-function connectToSheetRemote(urlParam, rootToSearch) {
-	var url = null;
-	if (typeof urlParam === 'string'){
-		url = urlParam;
-	}else{
-		url = $("#urlSheet").val();
-	}
-	//	URL_SHEET = url
-	//	handleClientLoad();
-	//listMajors(url);
-	loadFamilyTree(url);
-	//hideWellcomeDialog();
-	$("#urlSheet")[0] = "";
-	if(rootToSearch){
-		doSearch({isParamsFromUrl : true})
+function connectToCSV(){
 
-	}
 }
+
+
 
 function updateHeaderDetails(text) {
 	//$("#header_current_person_details")[0].empty();
@@ -230,33 +268,67 @@ $(document).ready(function () {
 	//updateHeaderDetails("");
 });
 
-function continueAfterUserAuthorized(){
-	if ( ! isUserSignIn){
-		showAuthDialog();
-		return;
+function handleClientLoad() {
+	return new Promise<void>((resolve, reject) => {
+		gapi.load('client:auth2', function(){
+			resolve();
+		});
+	})
+}
+
+async function readData(){
+	let dataArray = [];
+	const dbType: string =  await chooseDbDialogShow();
+	if (dbType === "csv"){
+		dataArray = await getFromUserCsv();
+	} else if (dbType === "googleSheet"){
+		dataArray = await getFromUserGoogleSheetId();
+	} else {
+		console.log("error: unknwon db type");
+		throw("error: unknwon db type");
 	}
+	return dataArray;
+}
+
+async function getFromUserCsv(params:type) {
+
+}
+
+async function getFromUserGoogleSheetId(params:type) {
+	await handleClientLoad();
+	if (isUserSignIn){
+		const res : boolean = await initClient(); // authentication	
+		if (!res){ // not authorize
+			showAuthDialog();
+			return;
+		}
+	}
+
+	const sheetIdInput = await showWellcomeDialog();
+
+	const dataArray = await readFromGoogleSheets(sheetIdInput);
+	return dataArray;
+
+}
+
+
+async function start() {
+	console.log("start");
+
+	const data : Array =  await readData();
+	loadFamilyTree(data);
+
+
 	updateHeaderDetails("");
 	paramsFromUrl = getParamsFromUrl();
 	if (paramsFromUrl.db){
-		loadFamilyTree();
+		//loadFamilyTree(data);
 		//connectToSheetRemote(paramsFromUrl.db, paramsFromUrl.root);
 	}else{
-		showWellcomeDialog();
-
+		//showWellcomeDialog();
 	}
+	
 }
 
-new ScrollZoom($('#content'), 4, 0.5)
 
-function callbacksuccess(){
-	console.log("benedektest");
-}
 
-jQuery.loadScript = function (url, callback) {
-    jQuery.ajax({
-        url: 'jquery-csv.js',
-        dataType: 'script',
-        success: callbacksuccess,
-        async: true
-    });
-}

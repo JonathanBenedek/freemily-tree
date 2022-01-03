@@ -22,42 +22,53 @@ var signoutButton = document.getElementById('signout_button');
  */
 
 function initClient() {
-	gapi.client.init({
-		apiKey: API_KEY,
-		clientId: CLIENT_ID,
-		discoveryDocs: DISCOVERY_DOCS,
-		scope: SCOPES
-	}).then(function () {
-		// Listen for sign-in state changes.
-		gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-
-		// Handle the initial sign-in state.
-		updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-		authorizeButton.onclick = handleAuthClick;
-		signoutButton.onclick = handleSignoutClick;
-	}).catch((err) => {
-		console.log(err)
+	return new Promise((reslove, reject)=>{
+		gapi.client.init({
+			apiKey: API_KEY,
+			clientId: CLIENT_ID,
+			discoveryDocs: DISCOVERY_DOCS,
+			scope: SCOPES
+		}).then(function () {
+			// Listen for sign-in state changes.
+			function priveteUpdateSigninStatus(isSignedIn){
+				updateSigninStatus(isSignedIn, reslove);
+			}
+			gapi.auth2.getAuthInstance().isSignedIn.listen(priveteUpdateSigninStatus);
+	
+			// Handle the initial sign-in state.
+			priveteUpdateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), reslove);
+			authorizeButton.onclick = handleAuthClick;
+			signoutButton.onclick = handleSignoutClick;
+		}).catch((err) => {
+			console.log(err)
+			reject(err);
+		});
 	});
+
 }
 
 /**
  *  Called when the signed in status changes, to update the UI
  *  appropriately. After a sign-in, the API is called.
  */
-function updateSigninStatus(isSignedIn) {
+function updateSigninStatus(isSignedIn, resolve) {
 	if (isSignedIn) {
 		isUserSignIn = true;
 		hideAuthDialog();
 		//authorizeButton.style.display = 'none';
 		signoutButton.style.display = 'block';
 		//listMajors();
-		continueAfterUserAuthorized();
+		//continueAfterUserAuthorized();
+			//getFromUserGoogleSheetId();
+			resolve(true);
+
 
 	} else {
 		isUserSignIn = false ; 
 		authorizeButton.style.display = 'block';
 		signoutButton.style.display = 'none';
 		showAuthDialog();
+		resolve(false);
 	}
 }
 

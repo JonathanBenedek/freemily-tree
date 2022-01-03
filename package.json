@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "python -m SimpleHTTPServer 8000",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "npm run build && npm run server"
   },
   "repository": {
     "type": "git",
