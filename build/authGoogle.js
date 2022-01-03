@@ -11,12 +11,13 @@ function initClient() {
             scope: SCOPES
         }).then(function () {
             function priveteUpdateSigninStatus(isSignedIn) {
-                updateSigninStatus(isSignedIn, reslove);
+                updateSigninStatus(isSignedIn);
             }
+            var isUserSignIn = gapi.auth2.getAuthInstance().isSignedIn.get();
             gapi.auth2.getAuthInstance().isSignedIn.listen(priveteUpdateSigninStatus);
-            priveteUpdateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), reslove);
             authorizeButton.onclick = handleAuthClick;
             signoutButton.onclick = handleSignoutClick;
+            reslove(isUserSignIn);
         })["catch"](function (err) {
             console.log(err);
             reject(err);
@@ -28,7 +29,7 @@ function updateSigninStatus(isSignedIn, resolve) {
         isUserSignIn = true;
         hideAuthDialog();
         signoutButton.style.display = 'block';
-        resolve(true);
+        start();
     }
     else {
         isUserSignIn = false;

@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 var paramsFromUrl = {};
+var isUserSignIn = false;
 var nextSearchButton = document.getElementById('next_search');
 nextSearchButton.onclick = presentNextSearch;
 var hideSearchDialogButton = document.getElementById('button_hide_search_dialog');
@@ -87,7 +88,6 @@ function getParamsFromUrl() {
     var query = getQueryParams(document.location.search);
     return query;
 }
-var isUserSignIn = true;
 function newUserClicked() {
     hideWellcomeDialog();
     showNewUserDialog();
@@ -195,6 +195,7 @@ function showWellcomeDialog() {
                 url = $("#urlSheet").val();
             }
             resolve(url);
+            hideWellcomeDialog();
             $("#urlSheet")[0] = "";
             if (rootToSearch) {
                 doSearch({ isParamsFromUrl: true });
@@ -257,10 +258,33 @@ function readData() {
         });
     });
 }
+function showDialogLoadCSV() {
+    return new Promise(function (resolve, reject) {
+        $("#load_csv_file")[0].showModal();
+        function handleUserChooseCSVFile() {
+            var fileCSVInput = document.getElementById('fileCSVInput');
+            var reader = new FileReader();
+            reader.onload = function () {
+                resolve(reader.result);
+                $("#load_csv_file")[0].close();
+            };
+            reader.readAsBinaryString(fileCSVInput.files[0]);
+        }
+        var userChooseCSVFile = document.getElementById('userChooseCSVFile');
+        userChooseCSVFile.onclick = handleUserChooseCSVFile;
+    });
+}
 function getFromUserCsv(params) {
     return __awaiter(this, void 0, void 0, function () {
+        var csvFile, dataArray;
         return __generator(this, function (_a) {
-            return [2];
+            switch (_a.label) {
+                case 0: return [4, showDialogLoadCSV()];
+                case 1:
+                    csvFile = _a.sent();
+                    dataArray = parseCsvToMultiArray(csvFile);
+                    return [2, dataArray];
+            }
         });
     });
 }
@@ -272,12 +296,13 @@ function getFromUserGoogleSheetId(params) {
                 case 0: return [4, handleClientLoad()];
                 case 1:
                     _a.sent();
-                    if (!isUserSignIn) return [3, 3];
+                    if (!!isUserSignIn) return [3, 3];
                     return [4, initClient()];
                 case 2:
                     res = _a.sent();
                     if (!res) {
                         showAuthDialog();
+                        authorizeButton.style.display = "visible";
                         return [2];
                     }
                     _a.label = 3;

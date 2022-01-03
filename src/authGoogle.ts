@@ -31,14 +31,16 @@ function initClient() {
 		}).then(function () {
 			// Listen for sign-in state changes.
 			function priveteUpdateSigninStatus(isSignedIn){
-				updateSigninStatus(isSignedIn, reslove);
+				updateSigninStatus(isSignedIn);
 			}
+			const isUserSignIn = gapi.auth2.getAuthInstance().isSignedIn.get();
 			gapi.auth2.getAuthInstance().isSignedIn.listen(priveteUpdateSigninStatus);
 	
 			// Handle the initial sign-in state.
-			priveteUpdateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), reslove);
+			//priveteUpdateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get(), reslove);
 			authorizeButton.onclick = handleAuthClick;
 			signoutButton.onclick = handleSignoutClick;
+			reslove(isUserSignIn);
 		}).catch((err) => {
 			console.log(err)
 			reject(err);
@@ -60,7 +62,9 @@ function updateSigninStatus(isSignedIn, resolve) {
 		//listMajors();
 		//continueAfterUserAuthorized();
 			//getFromUserGoogleSheetId();
-			resolve(true);
+			//resolve(true);
+			//getFromUserGoogleSheetId();
+			start();
 
 
 	} else {

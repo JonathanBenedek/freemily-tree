@@ -851,19 +851,18 @@ function parseCsvToMultiArray(csv) {
     }
     return res;
 }
-function readCsv() {
+function readCsv(path) {
     return new Promise(function (resolve, reject) {
         $.ajax({
             type: "GET",
-            url: "db.csv",
+            url: path,
             dataType: "text",
             success: function (response) {
                 var dataArray = parseCsvToMultiArray(response);
-                resolve();
+                resolve(dataArray);
             }
         });
     });
-    var data;
 }
 function listMajorsApi4(sheetId) {
     return new Promise(function (resolve, reject) {

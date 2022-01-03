@@ -4,12 +4,14 @@
 
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 var paramsFromUrl = {}
-
+var isUserSignIn = false;
 const nextSearchButton = document.getElementById('next_search');
 nextSearchButton.onclick = presentNextSearch;
 
 const hideSearchDialogButton = document.getElementById('button_hide_search_dialog');
 hideSearchDialogButton.onclick = closeSearchDiaolog;
+
+
 
 
 var connectToCSVButton = document.getElementById("connect_csv_button");
@@ -73,7 +75,6 @@ function getParamsFromUrl(){
 	var query = getQueryParams(document.location.search);
 	return query;
 }
-var isUserSignIn = true;
 
 
 function newUserClicked(){
@@ -221,7 +222,7 @@ function showWellcomeDialog() {
 			//listMajors(url);
 			resolve(url);
 			//loadFamilyTree(url);
-			//hideWellcomeDialog();
+			hideWellcomeDialog();
 			$("#urlSheet")[0] = "";
 			if(rootToSearch){
 				doSearch({isParamsFromUrl : true})
@@ -290,16 +291,45 @@ async function readData(){
 	return dataArray;
 }
 
-async function getFromUserCsv(params:type) {
+function showDialogLoadCSV(){
+	return new Promise((resolve, reject)=>{
+		//show
+		$("#load_csv_file")[0].showModal();
 
+		function handleUserChooseCSVFile(){
+			
+			const fileCSVInput = document.getElementById('fileCSVInput');
+
+			var reader = new FileReader();
+			reader.onload = function () {
+				resolve(reader.result);
+				$("#load_csv_file")[0].close()
+			};
+			// start reading the file. When it is done, calls the onload event defined above.
+			reader.readAsBinaryString(fileCSVInput.files[0]);
+
+		}
+
+		const userChooseCSVFile = document.getElementById('userChooseCSVFile');
+		userChooseCSVFile.onclick = handleUserChooseCSVFile;
+
+	})
+}
+
+
+async function getFromUserCsv(params:type) {
+	const csvFile =  await showDialogLoadCSV();
+	const dataArray = parseCsvToMultiArray(csvFile)
+	return dataArray;
 }
 
 async function getFromUserGoogleSheetId(params:type) {
 	await handleClientLoad();
-	if (isUserSignIn){
+	if (!isUserSignIn){
 		const res : boolean = await initClient(); // authentication	
 		if (!res){ // not authorize
 			showAuthDialog();
+			authorizeButton.style.display = "visible";
 			return;
 		}
 	}

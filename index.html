@@ -38,8 +38,8 @@
 	<div style="position: absolute; width: 100%; height: auto; padding-bottom: 8px">
 	<form style="background: #66bb77; box-shadow: 1px 2px 20px; opacity: 0.9; min-height: 80px; display: flex;">
 		<!--Add buttons to initiate auth sequence and sign out-->
-		<Button id="authorize_button" type="button" style="display: none;">Authorize</button>
-		<Button id="signout_button" type="button" style="display: none;">Sign Out</button>
+		<Button id="authorize_button" type="button" style="display: visible;">Authorize</button>
+		<Button id="signout_button" type="button" style="display: visible;">Sign Out</button>
 		<div style="color: white">
 			Family Tree
 		</div>
@@ -97,6 +97,21 @@
 			<Button type="button" id="new_user_button" class="mdl-button">Create New</button>
 
 		</div>
+	</dialog>
+
+
+	<dialog id="load_csv_file" style="width:400px" class="mdl-dialog">
+		<div style="padding:0px;" class="mdl-dialog__content">
+			<p>
+				Choose a CSV file:
+			</p>
+			<input type="file"
+			id="fileCSVInput"
+			accept=".csv">
+
+			<Button type="button" id="userChooseCSVFile" class="mdl-button">next</button>
+		</div>
+
 	</dialog>
 
 	<dialog id="new_user_dialog" style="width:400px" class="mdl-dialog">

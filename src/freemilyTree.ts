@@ -1008,24 +1008,22 @@ function parseCsvToMultiArray(csv) {
 }
 
 
-function readCsv(){
+function readCsv(path){
 return new Promise((resolve, reject) => {
 	$.ajax({
 		type: "GET",  
-		url: "db.csv",
+		url: path,
 		dataType: "text",      
 		//TODO: add error handler 
 		success: function(response)  
 		{
 		  const dataArray = parseCsvToMultiArray(response);
 
-		  resolve();
+		  resolve(dataArray);
 		  //callbackLoadFamilyTreeSuccess();
 		}   
 	  });
 })
-var data;
-
 }
 
  function listMajorsApi4(sheetId) {
