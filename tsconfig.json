@@ -6,7 +6,8 @@
      "preserveConstEnums": true,
      "outDir": "./build",
      "sourceMap": true,
-     "allowJs": true
+     "allowJs": true,
+
    },
    "include": ["src/**/*"],
    "exclude": ["node_modules", "**/*.spec.ts"]

@@ -3,13 +3,15 @@
 
 
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+let treeManager = new FreemilyTree();
 var paramsFromUrl = {}
 var isUserSignIn = false;
 const nextSearchButton = document.getElementById('next_search');
-nextSearchButton.onclick = presentNextSearch;
+
+nextSearchButton.onclick = treeManager.presentNextSearch;
 
 const hideSearchDialogButton = document.getElementById('button_hide_search_dialog');
-hideSearchDialogButton.onclick = closeSearchDiaolog;
+hideSearchDialogButton.onclick = treeManager.closeSearchDiaolog;
 
 
 
@@ -37,7 +39,7 @@ newUserConnectButton.onclick = newUserConnectClicked;
 const newUserButton = document.getElementById('new_user_button');
 newUserButton.onclick = newUserClicked;
 const cancelButtonTextField = document.getElementById("cancelPersonDetails");
-cancelButtonTextField.onclick = closeDialogFields;
+cancelButtonTextField.onclick = treeManager.closeDialogFields;
 
 var contentElement = document.getElementById('content');
 
@@ -51,6 +53,191 @@ function handleZoomOutClicked(){
 	var basicExample = document.getElementById('basic-example');
 	zoomInValue = zoomInValue - 0.1;
 	basicExample.style['transform'] = `scale(${zoomInValue})`;
+}
+
+function doSearch(isParamsFromUrl) {
+	treeManager.whoNextToSearch = 0;
+	var firstNameInput = "";
+	var lastNameInput = "";
+	if (isParamsFromUrl.isParamsFromUrl){
+		firstNameInput= paramsFromUrl.firstName;
+		lastNameInput = paramsFromUrl.lastName;
+	}else{
+		 firstNameInput = document.getElementById('firstName_search').value;
+		 lastNameInput = document.getElementById('lastName_search').value;
+	}
+	treeManager.idsAfterSearch = [];
+	treeManager.idsAfterSearch = treeManager.getIdsByName(firstNameInput, lastNameInput);
+	treeManager.presentNextSearch();
+	treeManager.closeSearchDiaolog();
+
+}
+
+function randerDownTree(event) {
+    //location.reload();
+    var temp = chart_config.slice(0, 1);
+    chart_config = temp;
+    var event = { target: { id: "build_tree_children_button", who: event.target.value } }
+    treeManager.buildTree(event);
+    //var temp = chart_config.slice(0, 1);
+    //chart_config = temp;
+    //makeTreeUpBottom(event.target.value)
+    window.setTimeout(treeManager.scrollToCenter, 1000)
+        //scrollToCenter();
+
+}
+
+//TODO: make one pice code of add spuse add perosn add child add.. 
+function addSpouse(event:any) {
+    const person = event.target.person;
+    var firstNameSpouse = (<HTMLInputElement>document.getElementById('firstName_input')).value;
+    var lsatNameParentSpouse = (<HTMLInputElement>document.getElementById('lastName_input')).value;
+    var commentsSpouse = (<HTMLInputElement>document.getElementById('textFiledInputcomment')).value;
+    const idSpouse: number = treeManager.getNewId();
+    treeManager.addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpouse, person.id, commentsSpouse);
+    var range = "";
+    var bodyId = {
+        values: [
+            [idSpouse]
+        ],
+    }
+    var bodyFirstName = {
+        values: [
+            [firstNameSpouse]
+        ],
+    }
+    var bodyLastName = {
+        values: [
+            [lsatNameParentSpouse]
+        ],
+    }
+    var bodySpouse = {
+        values: [
+            [idSpouse]
+        ],
+    }
+    var bodyIdPerson = {
+            values: [
+                [person.id]
+            ],
+        }
+        // ** ADD PERSON **
+        // ID
+    const rowRange = 1 + idSpouse;
+    range = "A" + (rowRange);
+    treeManager.editCell(bodyId, range);
+    // First Name
+    treeManager.addFirstNameToSheets(rowRange, bodyFirstName);
+    // Last Name
+    treeManager.addLastNameToSheets(rowRange, bodyLastName)
+        // Spouse
+		treeManager.addSpouseToSheets(rowRange, bodyIdPerson)
+        //comment
+		treeManager.addCommentToSheets(rowRange, commentsSpouse);
+
+    // ** add to spouse the new preson
+    treeManager.addSpouseToSheets((parseInt(person.id) + 1), bodySpouse);
+        // ** ADD the all children of person to the new spouse **
+    var children : [any] = treeManager.getAllChildren(person.id);
+    if (children) {
+        children.forEach(child => {
+            treeManager.addParentToChildLocalDataBase(idSpouse, null, null, child);
+            var value = {
+                values: [
+                    [idSpouse]
+                ],
+            }
+            treeManager.addParentToChildToSheet(child, value);
+        });
+    }
+    var dialogFields = document.getElementById('dialogFields');
+    treeManager.closeDialogFields();
+    treeManager.syncTreeAfterInsertNewData(person, "down");
+
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.removeEventListener("click", addSpouse);
+
+}
+
+function handleAddSpouse(event: any) {
+    const person = event.target.person;
+    let buttonSavePerson: any = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', addSpouse);
+    buttonSavePerson.person = person;
+    //addSpouse(person);
+    var dialogAdd: any= document.getElementById('dialogAdd');
+    var dialogFields: any = document.getElementById('dialogFields');
+    dialogAdd.close();
+    dialogFields.showModal();
+    //buttonAddSpouse.removeEventListener("click");
+    var buttonAddSpouse = document.getElementById("button_add_spouse");
+    buttonAddSpouse.removeEventListener("click", handleAddSpouse);
+}
+
+function handleAddParent(event: any) {
+    const person = event.target.person;
+    var buttonSavePerson: any = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click',  addParentToChild);
+    buttonSavePerson.person = person;
+    //addParentToChild(person);
+    var dialogAdd: any = document.getElementById('dialogAdd');
+    var dialogFields: any = document.getElementById('dialogFields');
+    dialogAdd.close();
+    dialogFields.showModal();
+    //buttonAddParent.removeEventListener("click");
+    var buttonAddParent = document.getElementById("button_add_parent");
+    buttonAddParent.removeEventListener("click", handleAddParent);
+}
+
+function handleAddChild(event: any) {
+    const person = event.target.person;
+    var buttonSavePerson: any = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', addChildToParent);
+    buttonSavePerson.person = person;
+    //addChildToParent(person);
+    var dialogAdd: any = document.getElementById('dialogAdd');
+    var dialogFields: any = document.getElementById('dialogFields');
+    dialogAdd.close();
+    dialogFields.showModal();
+    //buttonAddChild.removeEventListener("click");
+    var buttonAddChild = document.getElementById("button_add_child");
+    buttonAddChild.removeEventListener("click", handleAddChild);
+}
+
+function handleButtonEditClick(event) {
+    var dialog = document.getElementById('dialogAdd');
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', treeManager.saveCommentsToSheet);
+    var containerButtonsAddDialog = document.getElementById("containerButtonsAddDialog");
+    var buttons = treeManager.getRelevantButtons(event);
+    for (button in buttons) {
+        containerButtonsAddDialog.insertAdjacentElement("beforeend", buttons[button]);
+    }
+    dialog.showModal();
+
+    //TODO: save comment at remote databaes
+
+
+    //var person = prompt("Please enter your name", "Harry Potter");
+    //console.log(person);
+    //document.location.href = "./EditForm.html";
+    var body = {
+            values: [
+                ["dfvdsv"]
+            ],
+        }
+        //console.log(event.target.value);
+        //editCell(body, "A1")
+}
+
+
+function randerUpTree(event) {
+    //location.reload();
+    var temp = chart_config.slice(0, 1);
+    chart_config = temp;
+    var event = { target: { id: "build_tree_parents_button", who: event.target.value } }
+    treeManager.buildTree(event);
+    window.setTimeout(treeManager.scrollToCenter, 1000)
 }
 
 function handleZoomInClicked(){
@@ -110,6 +297,135 @@ function getQueryParams(qs) {
     }
 
     return params;
+}
+
+function addChildToParent(event: any) {
+    const person: any = event.target.person;
+    var firstNameChild: string = $("#firstName_input").val() as string;
+    var lsatNameChild = $("#lastName_input").val() as string;
+    var commentsChild = $("#textFiledInputcomment").val() as string;
+    const idChild: number = treeManager.getNewId();
+    treeManager.addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, person.id, parseInt(person.spouse), commentsChild);
+    var range = "";
+    var bodyId = {
+        values: [
+            [idChild]
+        ],
+    }
+    var bodyFirstName = {
+        values: [
+            [firstNameChild]
+        ],
+    }
+    var bodyLastName = {
+        values: [
+            [lsatNameChild]
+        ],
+    }
+    var bodyParent1 = {
+            values: [
+                [person.id]
+            ],
+        }
+        // ** ADD PERSON **
+        // ID
+    let rowRange = 1 + idChild;
+    range = "A" + (rowRange);
+    treeManager.editCell(bodyId, range);
+
+    treeManager.addFirstNameToSheets(rowRange, bodyFirstName);
+    treeManager.addLastNameToSheets(rowRange, bodyLastName);
+    treeManager.addParentToChildToSheet(idChild, bodyParent1, null, 1);
+    treeManager.addCommentToSheets(rowRange, commentsChild)
+
+    if (person.spouse) {
+
+        var bodyParent2 = {
+            values: [
+                [treeManager.localDataBase[parseInt(person.spouse)].id]
+            ]
+        }
+        treeManager.addParentToChildToSheet(idChild, bodyParent2);
+    }
+    //
+    var dialogFields = document.getElementById('dialogFields');
+    treeManager.closeDialogFields();
+    treeManager.syncTreeAfterInsertNewData(person, "down");
+
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.removeEventListener("click", addChildToParent);
+
+}
+
+function  addParentToChild(event:any) {
+    const child = event.target.person;
+    var firstNameParent = (<HTMLInputElement>document.getElementById('firstName_input')).value;
+    var lsatNameParent = (<HTMLInputElement>document.getElementById('lastName_input')).value;
+    var commentsParent = (<HTMLInputElement>document.getElementById('textFiledInputcomment')).value;
+    var idParent = treeManager.getNewId();
+    treeManager.addParentToChildLocalDataBase(idParent, firstNameParent, lsatNameParent, child.id, commentsParent);
+    var range = "";
+    var bodyId = {
+        values: [
+            [idParent]
+        ],
+    }
+    var bodyFirstName = {
+        values: [
+            [firstNameParent]
+        ],
+    }
+    var bodyLastName = {
+        values: [
+            [lsatNameParent]
+        ],
+    }
+    var bodyComments = {
+            values: [
+                [commentsParent]
+            ],
+        }
+        // ** ADD PERSON **
+        // ID
+    const rowRange = 1 + idParent;
+    range = "A" + (rowRange);
+    treeManager.editCell(bodyId, range);
+    // First Name
+    range = "B" + rowRange;
+    treeManager.editCell(bodyFirstName, range);
+    // Last Name
+    range = "C" + rowRange;
+    treeManager.editCell(bodyLastName, range);
+    //comment
+    treeManager.addCommentToSheets(rowRange, bodyComments);
+
+    // ** ADD PARENT TO CHILD **
+    var value = {
+        values: [
+            [idParent]
+        ],
+    }
+
+    treeManager.addParentToChildToSheet(child.id, value, () => {
+        //location.reload();
+        treeManager.connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
+        treeManager.connectSpouseRelationshipByChildRemoteStorageSheets(child.id, idParent);
+        var dialogFields = document.getElementById('dialogFields');
+        treeManager.closeDialogFields();
+        treeManager.syncTreeAfterInsertNewData(child);
+    });
+
+    //	buttonSavePerson.removeEventListener('click');
+
+    // ** CONNECT(sposue reltionship) PARENT TO SECOND PARENT IF EXIST **
+    // update local database
+    //	connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
+
+    // update data base sheets
+    //	connectSpouseRelationshipByChildRemoteStorageSheets(child.id, idParent);
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.removeEventListener("click", addParentToChild);
+
 }
 
 function ScrollZoom(container, max_scale, factor) {
@@ -337,16 +653,68 @@ async function getFromUserGoogleSheetId(params:type) {
 	const sheetIdInput = await showWellcomeDialog();
 
 	const dataArray = await readFromGoogleSheets(sheetIdInput);
+	
 	return dataArray;
 
+}
+
+async function  listMajorsApi4(sheetId) {
+	return new Promise((resolve, reject)=> {
+	   gapi.client.sheets.spreadsheets.values.get({
+		   spreadsheetId: sheetId,
+		   range: 'A1:H',
+	   }).then(function (response) {
+		   treeManager.isUserHavePremission = true ;
+		   SHEET_ID = sheetId;
+		   resolve(response.result.values);
+		   //parseDataSheetsToMultiArray(response.result.values);
+		   //loadFamilyTree();
+		   //hideWellcomeDialog();
+	   }, function (err) {
+		   console.log(err);
+		   document.getElementById("error_sheetUrl").classList.remove("hidden");
+		   document.getElementById("error_sheetUrl").classList.add("shown");
+		   reject(err);
+		   return;
+	   }).catch((err) => {
+		   console.log(err);
+		   document.getElementById("error_sheetUrl").classList.remove("hidden");
+		   document.getElementById("error_sheetUrl").classList.add("shown");
+		   reject(err);
+		   return;
+	   });
+	})
+
+ }
+
+async function readFromGoogleSheets(sheetIdInput){
+	return await listMajorsApi4(sheetIdInput);
+}
+
+async function createTitlesInGoogleSheets() {
+	//TODO:
+}
+
+async function askFromUserInsertTheFirstPerson() {
+	//TODO:
 }
 
 
 async function start() {
 	console.log("start");
 
-	const data : Array =  await readData();
-	loadFamilyTree(data);
+	try{
+		let data : Array =  await readData();
+		if (!data){
+			// empty table
+			await createTitlesInGoogleSheets(); 
+			await askFromUserInsertTheFirstPerson();
+			data =  await readData();
+		}
+	} catch (err){
+		console.log(err);
+	}
+	treeManager.loadFamilyTree(data);
 
 
 	updateHeaderDetails("");

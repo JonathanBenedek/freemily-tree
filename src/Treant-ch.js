@@ -1923,7 +1923,7 @@
             node.appendChild(emptyDivForSpace);
             node.appendChild(containerButtons);
             containerButtons.className = "containerButtons";
-            if (isLogIn()) {
+            if (treeManager.isLogIn()) {
                 var button = document.createElement('button');
                 button.innerText = thiz.button.label;
                 button.value = thiz.button.id;
@@ -1996,7 +1996,7 @@
             divForPoint.id = "point" + this.button.id;
             divForPoint.style = "height: 1px; width: 1px; margin: auto;"
             node.appendChild(divForPoint);
-            if (isLogIn()) {
+            if (treeManager.isLogIn()) {
                 var button = document.createElement('button');
                 button.innerText = this.button.label;
                 button.value = this.button.id;

@@ -1,87 +1,91 @@
 // @ts-nocheck
 
-personsUpBottom = {};
+class FreemilyTree {
+
+
+
+
+personsUpBottom : {[key:string]: any} = {};
 persons = {};
-localDataBase = {};
+localDataBase : {[key:string]: any} = {};
 //TODO: change diraction in tree bottom up . the childern should be  
 //TODO: add spouse in tree bottom up
 //TODO: is log in should consider if the the user have access to the sheet. then maybe change the function name
 //TODO: make sure that the user understand which spouse is the  real children
 
-let isUserHavePremission = false;
+isUserHavePremission = false;
 
-function isLogIn() {
+ isLogIn() {
     try {
-        return (isUserHavePremission && gapi.auth2.getAuthInstance().isSignedIn.get());
+        return (this.isUserHavePremission && gapi.auth2.getAuthInstance().isSignedIn.get());
     } catch (err) {
         return false;
     }
 }
 
-function editCell(body, range, cb) {
+ editCell(body: any, range: any, cb: Function=()=>{}) {
+     // @ts-ignore
     gapi.client.sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
         range: range,
         valueInputOption: 'RAW',
         resource: body
-    }).then((response) => {
+    }).then((response: any) => {
         var result = response.result;
         console.log(`${result.updatedCells} cells updated.`);
         if (cb) { cb(); }
-    }).catch((err) => {
+    }).catch((err: any) => {
         console.log(err);
-        if (cb) {
             cb();
-        }
     });
 }
 
-function getNewId() {
-    return Object.keys(localDataBase).length + 1;
+ getNewId() : number {
+    return Object.keys(this.localDataBase).length + 1;
 }
 
-function getAllChildren(idParent) {
-    if (personsUpBottom[parseInt(idParent)]) {
-        return personsUpBottom[parseInt(idParent)].children;
+ getAllChildren(idParent: string) {
+    if (this.personsUpBottom[parseInt(idParent)]) {
+        return this.personsUpBottom[parseInt(idParent)].children;
     }
     return null;
 }
 
-function addParentToChildLocalDataBase(id, firstName, lastName, idChild, comments) {
-    if (!localDataBase[id]) {
-        var person = {};
+ addParentToChildLocalDataBase(id: number, firstName: string, lastName:string, idChild:string, comments?:string) {
+    if (!this.localDataBase[id]) {
+        var person: {[key:string]: any} = {};
         person["id"] = id.toString();
         person["firstName"] = firstName;
         person["lastName"] = lastName;
         if (comments) {
             person["comments"] = comments;
         }
-        localDataBase[id] = person;
+        this.localDataBase[id] = person;
     }
 
-    if (!localDataBase[idChild].parent1) {
-        localDataBase[idChild].parent1 = id.toString();
+    if (!this.localDataBase[idChild].parent1) {
+        this.localDataBase[idChild].parent1 = id.toString();
     } else {
-        if (!localDataBase[idChild].parent2) {
-            localDataBase[idChild].parent2 = id.toString();
+        if (!this.localDataBase[idChild].parent2) {
+            this.localDataBase[idChild].parent2 = id.toString();
         } else {
             console.log("error to add parent to local data base, its seems that there is already 2 parents");
         }
     }
 }
 
-function getRangeForParentToChild(childId) {
-    var child = localDataBase[childId];
+ getRangeForParentToChild(childId: string | number) {
+    var child = this.localDataBase[childId];
     var res = "D"
     if (child.parent2) {
         res = "E"
     }
-    res = res + (parseInt(childId) + 1).toString();
+    res = res + (parseInt(childId as string) + 1).toString();
     return res;
 }
 
-function addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpouse, idPerson, comments) {
-    var person = {};
+ addSpouseToLocalDataBase(idSpouse: number, firstNameSpouse: string, lsatNameParentSpouse: string, idPerson: string, comments: string) {
+    var person: {[key:string]: any} = {};
     person["id"] = idSpouse.toString();
     person["firstName"] = firstNameSpouse;
     person["lastName"] = lsatNameParentSpouse;
@@ -89,13 +93,13 @@ function addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpous
     if (comments) {
         person["comments"] = comments;
     }
-    localDataBase[idSpouse] = person;
-    localDataBase[idPerson].spouse = idSpouse.toString();
+    this.localDataBase[idSpouse] = person;
+    this.localDataBase[idPerson].spouse = idSpouse.toString();
 
 }
 
-function addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, idPerson, spouseId, comments) {
-    var person = {};
+ addChildrenToLocalDataBase(idChild:number, firstNameChild:string, lsatNameChild:string, idPerson: string, spouseId: number, comments: string) {
+    var person: {[key:string]: any} = {};
     person["id"] = idChild.toString();
     person["firstName"] = firstNameChild;
     person["lastName"] = lsatNameChild;
@@ -103,37 +107,36 @@ function addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, idPe
     if (comments) {
         person["comments"] = comments;
     }
-    if (localDataBase[spouseId]) {
+    if (this.localDataBase[spouseId]) {
         person["parent2"] = spouseId.toString();
     }
-    localDataBase[idChild] = person;
+    this.localDataBase[idChild] = person;
 }
 
-function addLastNameToSheets(rowRange, bodyFirstName, cb) {
+addLastNameToSheets(rowRange: number, bodyFirstName: any, cb?: Function) {
     const range = "C" + rowRange;
-    editCell(bodyFirstName, range, cb);
+    this.editCell(bodyFirstName, range, cb);
 }
 
-
-function addFirstNameToSheets(rowRange, bodyFirstName, cb) {
+addFirstNameToSheets(rowRange: number, bodyFirstName: any, cb?: Function) {
     const range = "B" + rowRange;
-    editCell(bodyFirstName, range, cb);
+    this.editCell(bodyFirstName, range, cb);
 }
 
-function addParentToChildToSheet(childId, value, cb = () => {}, parent) {
+addParentToChildToSheet(childId: number | string, value: any, cb:Function = () => {}, parent?: number) {
     let range;
     if (1 === parent) {
         //res = res + (parseInt(childId) + 1).toString();
-        range = "D" + (parseInt(childId) + 1).toString();
+        range = "D" + (parseInt(childId as string) + 1).toString();
     } else if (2 === parent) {
-        range = "E" + (parseInt(childId) + 1).toString();
+        range = "E" + (parseInt(childId as string) + 1).toString();
     } else {
-        range = getRangeForParentToChild(childId);
+        range = this.getRangeForParentToChild(childId);
     }
-    editCell(value, range, cb);
+    this.editCell(value, range, cb);
 }
 
-function addSpouseToSheets(rowRange, bodyFirstName, cb) {
+addSpouseToSheets(rowRange: number, bodyFirstName: any, cb: Function = ()=>{}) {
 
     const bodyrequest = ("object" == typeof bodyFirstName) ? bodyFirstName : {
         values: [
@@ -141,10 +144,10 @@ function addSpouseToSheets(rowRange, bodyFirstName, cb) {
         ]
     };
     const range = "F" + rowRange;
-    editCell(bodyrequest, range, cb);
+    this.editCell(bodyrequest, range, cb);
 }
 
-function addCommentToSheets(rowRange, bodyFirstName, cb) {
+ addCommentToSheets(rowRange: number, bodyFirstName: any, cb?: Function) {
 
     const bodyrequest = ("object" == typeof bodyFirstName) ? bodyFirstName : {
         values: [
@@ -152,10 +155,10 @@ function addCommentToSheets(rowRange, bodyFirstName, cb) {
         ]
     };
     const range = "H" + rowRange;
-    editCell(bodyrequest, range, cb);
+    this.editCell(bodyrequest, range, cb);
 }
 
-function syncTreeAfterInsertNewData(person, diraction) {
+ syncTreeAfterInsertNewData(person:any, diraction: "down"| "up" = "up") {
     var dir = "build_tree_parents_button";
     if ("down" === diraction) {
         dir = "build_tree_children_button"
@@ -163,309 +166,72 @@ function syncTreeAfterInsertNewData(person, diraction) {
     var temp = chart_config.slice(0, 1);
     chart_config = temp;
     var event = { target: { id: dir, who: person.id } }
-    persons = {};
-    personsUpBottom = {};
-    for (personId in localDataBase) {
-        insertDataBottomUp(parseInt(personId));
-        insertDataUpBottom(parseInt(personId));
+    this.persons = {};
+    this.personsUpBottom = {};
+    for (let personId in this.localDataBase) {
+        this.insertDataBottomUp(parseInt(personId));
+        this.insertDataUpBottom(parseInt(personId));
     }
-    buildTree(event);
-}
-
-function addChildToParent(event) {
-    const person = event.target.person;
-    var firstNameChild = $("#firstName_input").val();
-    var lsatNameChild = $("#lastName_input").val();
-    var commentsChild = $("#textFiledInputcomment").val();
-    var idChild = getNewId();
-    addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, person.id, parseInt(person.spouse), commentsChild);
-    var range = "";
-    var bodyId = {
-        values: [
-            [idChild]
-        ],
-    }
-    var bodyFirstName = {
-        values: [
-            [firstNameChild]
-        ],
-    }
-    var bodyLastName = {
-        values: [
-            [lsatNameChild]
-        ],
-    }
-    var bodyParent1 = {
-            values: [
-                [person.id]
-            ],
-        }
-        // ** ADD PERSON **
-        // ID
-    rowRange = 1 + idChild;
-    range = "A" + (rowRange);
-    editCell(bodyId, range);
-
-    addFirstNameToSheets(rowRange, bodyFirstName);
-    addLastNameToSheets(rowRange, bodyLastName);
-    addParentToChildToSheet(idChild, bodyParent1, null, 1);
-    addCommentToSheets(rowRange, commentsChild)
-
-    if (person.spouse) {
-
-        var bodyParent2 = {
-            values: [
-                [localDataBase[parseInt(person.spouse)].id]
-            ]
-        }
-        addParentToChildToSheet(idChild, bodyParent2);
-    }
-    //
-    var dialogFields = document.getElementById('dialogFields');
-    closeDialogFields();
-    syncTreeAfterInsertNewData(person, "down");
-
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.removeEventListener("click", addChildToParent);
-
+    this.buildTree(event);
 }
 
 
-//TODO: make one pice code of add spuse add perosn add child add.. 
-function addSpouse(event) {
-    const person = event.target.person;
-    var firstNameSpouse = document.getElementById('firstName_input').value;
-    var lsatNameParentSpouse = document.getElementById('lastName_input').value;
-    var commentsSpouse = document.getElementById('textFiledInputcomment').value;
-    var idSpouse = getNewId();
-    addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpouse, person.id, commentsSpouse);
-    var range = "";
-    var bodyId = {
-        values: [
-            [idSpouse]
-        ],
-    }
-    var bodyFirstName = {
-        values: [
-            [firstNameSpouse]
-        ],
-    }
-    var bodyLastName = {
-        values: [
-            [lsatNameParentSpouse]
-        ],
-    }
-    var bodySpouse = {
-        values: [
-            [idSpouse]
-        ],
-    }
-    var bodyIdPerson = {
-            values: [
-                [person.id]
-            ],
-        }
-        // ** ADD PERSON **
-        // ID
-    rowRange = 1 + idSpouse;
-    range = "A" + (rowRange);
-    editCell(bodyId, range);
-    // First Name
-    addFirstNameToSheets(rowRange, bodyFirstName);
-    // Last Name
-    addLastNameToSheets(rowRange, bodyLastName)
-        // Spouse
-    addSpouseToSheets(rowRange, bodyIdPerson)
-        //comment
-    addCommentToSheets(rowRange, commentsSpouse);
 
-    // ** add to spouse the new preson
-    addSpouseToSheets((parseInt(person.id) + 1).toString(), bodySpouse, editCell(bodySpouse, range, () => {
-            //location.reload();
-        }))
-        // ** ADD the all children of person to the new spouse **
-    var children = getAllChildren(person.id);
-    if (children) {
-        children.forEach(child => {
-            addParentToChildLocalDataBase(idSpouse, null, null, child);
-            var value = {
-                values: [
-                    [idSpouse]
-                ],
-            }
-            addParentToChildToSheet(child, value);
-        });
-    }
-    var dialogFields = document.getElementById('dialogFields');
-    closeDialogFields();
-    syncTreeAfterInsertNewData(person, "down");
 
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.removeEventListener("click", addSpouse);
 
-}
 
-function connectSpouseRelationshipByChildRemoteStorageSheets(chidId, spouseId) {
-    parentId = (localDataBase[chidId].parent1 && localDataBase[chidId].parent1 != spouseId) ? (localDataBase[chidId].parent1) :
-        ((localDataBase[chidId].parent2 && localDataBase[chidId].parent2 != spouseId) ? localDataBase[chidId].parent2 :
+ connectSpouseRelationshipByChildRemoteStorageSheets(chidId: number, spouseId: number) {
+    const parentId = (this.localDataBase[chidId].parent1 && this.localDataBase[chidId].parent1 != spouseId) ? (this.localDataBase[chidId].parent1) :
+        ((this.localDataBase[chidId].parent2 && this.localDataBase[chidId].parent2 != spouseId) ? this.localDataBase[chidId].parent2 :
             null);
     if (parentId) {
-        addSpouseToSheets((parseInt(parentId) + 1).toString(), spouseId);
-        addSpouseToSheets((parseInt(spouseId) + 1).toString(), parentId);
+        this.addSpouseToSheets((parseInt(parentId) + 1), spouseId);
+        this.addSpouseToSheets((spouseId + 1), parentId);
     } else {
         return;
     }
 }
 
-function connectSpousesLocalDatabase(spouse1, spouse2) {
-    localDataBase[spouse1].spouse = spouse2;
-    localDataBase[spouse2].spouse = spouse1;
+ connectSpousesLocalDatabase(spouse1: number, spouse2: number) {
+    this.localDataBase[spouse1].spouse = spouse2;
+    this.localDataBase[spouse2].spouse = spouse1;
 }
 
-function connectSpouseRelationshipByChildLocalDatabase(chidId, spouseId) {
+ connectSpouseRelationshipByChildLocalDatabase(chidId: number, spouseId: number) {
     //check if exit already parent if exist connect to spouseId
-    parentId = (localDataBase[chidId].parent1 && localDataBase[chidId].parent1 != spouseId) ? (localDataBase[chidId].parent1) :
-        ((localDataBase[chidId].parent2 && localDataBase[chidId].parent2 != spouseId) ? localDataBase[chidId].parent2 :
+    const parentId = (this.localDataBase[chidId].parent1 && this.localDataBase[chidId].parent1 != spouseId) ? (this.localDataBase[chidId].parent1) :
+        ((this.localDataBase[chidId].parent2 && this.localDataBase[chidId].parent2 != spouseId) ? this.localDataBase[chidId].parent2 :
             null);
     if (parentId) {
-        connectSpousesLocalDatabase(parentId, spouseId);
+        this.connectSpousesLocalDatabase(parentId, spouseId);
     } else {
 
         return;
     }
 }
 
-function addParentToChild(event) {
-    const child = event.target.person;
-    var firstNameParent = document.getElementById('firstName_input').value;
-    var lsatNameParent = document.getElementById('lastName_input').value;
-    var commentsParent = document.getElementById('textFiledInputcomment').value;
-    var idParent = getNewId();
-    addParentToChildLocalDataBase(idParent, firstNameParent, lsatNameParent, child.id, commentsParent);
-    var range = "";
-    var bodyId = {
-        values: [
-            [idParent]
-        ],
-    }
-    var bodyFirstName = {
-        values: [
-            [firstNameParent]
-        ],
-    }
-    var bodyLastName = {
-        values: [
-            [lsatNameParent]
-        ],
-    }
-    var bodyComments = {
-            values: [
-                [commentsParent]
-            ],
-        }
-        // ** ADD PERSON **
-        // ID
-    rowRange = 1 + idParent;
-    range = "A" + (rowRange);
-    editCell(bodyId, range);
-    // First Name
-    range = "B" + rowRange;
-    editCell(bodyFirstName, range);
-    // Last Name
-    range = "C" + rowRange;
-    editCell(bodyLastName, range);
-    //comment
-    addCommentToSheets(rowRange, bodyComments);
-
-    // ** ADD PARENT TO CHILD **
-    var value = {
-        values: [
-            [idParent]
-        ],
-    }
-
-    addParentToChildToSheet(child.id, value, () => {
-        //location.reload();
-        connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
-        connectSpouseRelationshipByChildRemoteStorageSheets(child.id, idParent);
-        var dialogFields = document.getElementById('dialogFields');
-        closeDialogFields();
-        syncTreeAfterInsertNewData(child);
-    });
-
-    //	buttonSavePerson.removeEventListener('click');
-
-    // ** CONNECT(sposue reltionship) PARENT TO SECOND PARENT IF EXIST **
-    // update local database
-    //	connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
-
-    // update data base sheets
-    //	connectSpouseRelationshipByChildRemoteStorageSheets(child.id, idParent);
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.removeEventListener("click", addParentToChild);
-
-}
-
-function handleAddSpouse(event) {
-    const person = event.target.person;
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.addEventListener('click', addSpouse);
-    buttonSavePerson.person = person;
-    //addSpouse(person);
-    var dialogAdd = document.getElementById('dialogAdd');
-    var dialogFields = document.getElementById('dialogFields');
-    dialogAdd.close();
-    dialogFields.showModal();
-    //buttonAddSpouse.removeEventListener("click");
-    var buttonAddSpouse = document.getElementById("button_add_spouse");
-    buttonAddSpouse.removeEventListener("click", handleAddSpouse);
-}
-
-function handleAddParent(event) {
-    const person = event.target.person;
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.addEventListener('click', addParentToChild);
-    buttonSavePerson.person = person;
-    //addParentToChild(person);
-    var dialogAdd = document.getElementById('dialogAdd');
-    var dialogFields = document.getElementById('dialogFields');
-    dialogAdd.close();
-    dialogFields.showModal();
-    //buttonAddParent.removeEventListener("click");
-    var buttonAddParent = document.getElementById("button_add_parent");
-    buttonAddParent.removeEventListener("click", handleAddParent);
-}
 
 
-function closeDialogFields() {
-    var dialogFields = document.getElementById('dialogFields');
+
+
+
+
+ closeDialogFields() {
+    var dialogFields: any = document.getElementById('dialogFields');
     dialogFields.close();
 }
 
-function handleAddChild(event) {
-    const person = event.target.person;
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.addEventListener('click', addChildToParent);
-    buttonSavePerson.person = person;
-    //addChildToParent(person);
-    var dialogAdd = document.getElementById('dialogAdd');
-    var dialogFields = document.getElementById('dialogFields');
-    dialogAdd.close();
-    dialogFields.showModal();
-    //buttonAddChild.removeEventListener("click");
-    var buttonAddChild = document.getElementById("button_add_child");
-    buttonAddChild.removeEventListener("click", handleAddChild);
-}
 
-function getRelevantButtons(event) {
+
+ getRelevantButtons(event: any) {
     //TODO: understand which buttons should have and return array with buttons element
     //The buttons returns wih eventlistener 
     var res = [];
     var personId = event.target.value;
-    var person = localDataBase[personId];
-    var buttonAddParent = document.getElementById("button_add_parent");
-    var buttonAddSpouse = document.getElementById("button_add_spouse");
-    var buttonAddChild = document.getElementById("button_add_child");
+    var person = this.localDataBase[personId];
+    var buttonAddParent: any = document.getElementById("button_add_parent");
+    var buttonAddSpouse: any = document.getElementById("button_add_spouse");
+    var buttonAddChild: any = document.getElementById("button_add_child");
     var buttonCancel = document.getElementById("button_cancel_add_person");
     //buttonCancel.hidden = true //beacuse we want cancel button be the last one
     buttonAddParent.hidden = true;
@@ -498,143 +264,100 @@ function getRelevantButtons(event) {
 
 }
 
-function randerUpTree(event) {
-    //location.reload();
-    var temp = chart_config.slice(0, 1);
-    chart_config = temp;
-    var event = { target: { id: "build_tree_parents_button", who: event.target.value } }
-    buildTree(event);
-    window.setTimeout(scrollToCenter, 1000)
-}
 
-function scrollToCenter() {
+
+ scrollToCenter() {
     //scrollElement.scrollTo(screen.width / 2, screen.height / 2);
+    // @ts-ignore
     var currntId = "containerPerson_" + chart_config[1].button.id
     document.getElementById(currntId).scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     //  scrollElement.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" })
 
 }
 
-function randerDownTree(event) {
-    //location.reload();
-    var temp = chart_config.slice(0, 1);
-    chart_config = temp;
-    var event = { target: { id: "build_tree_children_button", who: event.target.value } }
-    buildTree(event);
-    //var temp = chart_config.slice(0, 1);
-    //chart_config = temp;
-    //makeTreeUpBottom(event.target.value)
-    window.setTimeout(scrollToCenter, 1000)
-        //scrollToCenter();
 
-}
 
-function saveCommentsToSheet() {
-    var commentsField = document.getElementById("commentsField");
+ saveCommentsToSheet() {
+    var commentsField: any = document.getElementById("commentsField");
     var commeent = commentsField.value;
 }
 
-function handleButtonEditClick(event) {
-    var dialog = document.getElementById('dialogAdd');
-    var buttonSavePerson = document.getElementById("savePersonDetails");
-    buttonSavePerson.addEventListener('click', saveCommentsToSheet);
-    var containerButtonsAddDialog = document.getElementById("containerButtonsAddDialog");
-    var buttons = getRelevantButtons(event);
-    for (button in buttons) {
-        containerButtonsAddDialog.insertAdjacentElement("beforeend", buttons[button]);
-    }
-    dialog.showModal();
 
-    //TODO: save comment at remote databaes
-
-
-    //var person = prompt("Please enter your name", "Harry Potter");
-    //console.log(person);
-    //document.location.href = "./EditForm.html";
-    var body = {
-            values: [
-                ["dfvdsv"]
-            ],
-        }
-        //console.log(event.target.value);
-        //editCell(body, "A1")
-}
-
-var handleButtonsMaping = {
+handleButtonsMaping = {
     addButton: handleButtonEditClick,
     showUpTree: { onClick: randerUpTree, label: ".\\resources\\icons\\up.svg" },
     showDownTree: { onClick: randerDownTree, label: ".\\resources\\icons\\down.svg" },
 }
 
 
-function getSpouseIdById(id) {
-    const spouse = (localDataBase[id].spouse) ? localDataBase[id].spouse : null;
+ getSpouseIdById(id: number) {
+    const spouse = (this.localDataBase[id].spouse) ? this.localDataBase[id].spouse : null;
     return spouse;
 }
 
-function getCommentsById(id) {
+ getCommentsById(id: number) {
     try {
-        return (localDataBase[id].comments) ? localDataBase[id].comments : null;
+        return (this.localDataBase[id].comments) ? this.localDataBase[id].comments : null;
     } catch (err) {
         console.log("err in getcommentBy id with param : id= " + id + "error: " + err);
     }
 }
 
-function getFirstName(id) {
+ getFirstName(id: number) {
     try {
-        return localDataBase[parseInt(id)]["firstName"];
+        return this.localDataBase[id]["firstName"];
     } catch (err) {
         console.log("error in get first name funtion with params=" + id + ".  err=" + err);
     }
 }
 
-function getLastName(id) {
+ getLastName(id: number) {
     try {
-        return localDataBase[parseInt(id)].lastName;
+        return this.localDataBase[id].lastName;
 
     } catch (err) {
         console.log("error in get last name funtion with params=" + id + ".  err=" + err);
     }
 }
 
-function getFullNameById(id) {
-    return getFirstName(id) + " " + getLastName(id);
+ getFullNameById(id: number) {
+    return this.getFirstName(id) + " " + this.getLastName(id);
 }
 
-function getParentsById(id) {
+ getParentsById(id: number) {
     let arr = [];
-    arr.push(localDataBase[parseInt(id)].parent1);
-    arr.push(localDataBase[parseInt(id)].parent2);
+    arr.push(this.localDataBase[id].parent1);
+    arr.push(this.localDataBase[id].parent2);
     return arr;
 }
 
-function insertParentsRec(personId, graphPerson) {
-    const parents = getParentsById(personId);
+ insertParentsRec(personId: number, graphPerson: any) {
+    const parents = this.getParentsById(personId);
     if (parents[0] != null && "" !== parents[0]) {
-        if (true) {
-            var temp1 = { text: { name: getFullNameById(parents[0]) }, parent: graphPerson, button: { id: parents[0], label: "+", onClick: handleButtonsMaping } };
-        } else {
-            var temp1 = { text: { name: getFullNameById(parents[0]) }, parent: graphPerson };
-
-        }
-        const title1 = getCommentsById(parents[0]);
+        var temp1 = { text: { name: this.getFullNameById(parents[0]) }, parent: graphPerson, button: { id: parents[0], label: "+", onClick: this.handleButtonsMaping } };
+        const title1 = this.getCommentsById(parents[0]);
+        //@ts-ignore
         (title1) ? temp1.text["title"] = title1: null;
         //temp1.text["id"] = parents[0];
+                //@ts-ignore
         chart_config.push(temp1);
-        insertParentsRec(parents[0], temp1);
+        this.insertParentsRec(parents[0], temp1);
     }
     if (parents[1] != null && "" !== parents[1]) {
         if (true) {
-            var temp2 = { text: { name: getFullNameById(parents[1]) }, parent: graphPerson, button: { id: parents[1], label: "+", onClick: handleButtonsMaping } }
+            var temp2 = { text: { name: this.getFullNameById(parents[1]) }, parent: graphPerson, button: { id: parents[1], label: "+", onClick: this.handleButtonsMaping } }
         } else {
-            var temp2 = { text: { name: getFullNameById(parents[1]) }, parent: graphPerson }
+                    //@ts-ignore
+            var temp2 = { text: { name: this.getFullNameById(parents[1]) }, parent: graphPerson }
 
         }
-        const title2 = getCommentsById(parents[1]);
+        const title2 = this.getCommentsById(parents[1]);
         //temp2.text["id"] = parents[1];
+                //@ts-ignore
         (title2) ? temp2.text["title"] = title2: null;
+                //@ts-ignore
         chart_config.push(temp2);
-        insertParentsRec(parents[1], temp2);
+        this.insertParentsRec(parents[1], temp2);
     }
     //insertParentsRec(person.parent1);
     //insertParentsRec(person.parent2);
@@ -643,59 +366,83 @@ function insertParentsRec(personId, graphPerson) {
 
 }
 
-function insertChildernRec(parentID, grapObject) {
-    if (personsUpBottom[parentID]) {
-        if (personsUpBottom[parentID].children) {
-            for (var i = 0 in personsUpBottom[parentID].children) {
-                var childId = personsUpBottom[parentID].children[i]
+ insertChildernRec(parentID: number, grapObject: any) {
+    if (this.personsUpBottom[parentID]) {
+        if (this.personsUpBottom[parentID].children) {
+            for (var i = 0; i< this.personsUpBottom[parentID].children.length; i++) {
+                var childId = this.personsUpBottom[parentID].children[i]
                 if (true) {
-                    var child = { text: { name: getFullNameById(childId) }, parent: grapObject, button: { id: childId, label: "+", onClick: handleButtonsMaping } };
-                } else {
-                    var child = { text: { name: getFullNameById(childId) }, parent: grapObject };
-
+                    var child = { text: { name: this.getFullNameById(childId) }, parent: grapObject, button: { id: childId, label: "+", onClick: this.handleButtonsMaping } };
                 }
-                const title = getCommentsById(childId);
+                const title = this.getCommentsById(childId);
+                //@ts-ignore
                 (title) ? child.text["title"] = title: null;
-                const spouseId = getSpouseIdById(childId);
-                const spouse = (spouseId) ? { text: { name: getFullNameById(spouseId), button: { id: spouseId, label: "+", onClick: handleButtonsMaping }, comments: getCommentsById(spouseId) } } : null;
+                const spouseId = this.getSpouseIdById(childId);
+                const spouse = (spouseId) ? { text: { name: this.getFullNameById(spouseId), button: { id: spouseId, label: "+", onClick: this.handleButtonsMaping }, comments: this.getCommentsById(spouseId) } } : null;
                 if (spouse) {
+                                    //@ts-ignore
                     child.spouse = spouse;
                 }
+                                //@ts-ignore
+
                 chart_config.push(child);
-                insertChildernRec(personsUpBottom[parentID].children[i], child);
+                this.insertChildernRec(this.personsUpBottom[parentID].children[i], child);
             }
         }
     }
 }
 
 
-function makeTreeBottomUp(personId) {
+ makeTreeBottomUp(personId: number) {
     // debugger;
-    var root = { text: { name: getFullNameById(personId) }, button: { id: personId, label: "+", onClick: handleButtonsMaping } };
-    (getCommentsById(personId)) ? root["title"] = (getCommentsById(personId)): null;
+    var root = { text: { name: this.getFullNameById(personId) }, button: { id: personId, label: "+", onClick: this.handleButtonsMaping } };
+    (this.getCommentsById(personId)) ? root["title"] = (this.getCommentsById(personId)): null;
     //root["id"] = personId;
     chart_config.push(root);
     chart_config[0].rootOrientation = "SOUTH";
-    insertParentsRec(personId, root);
+	this.insertParentsRec(personId, root);
     return chart_config;
 }
 
-function makeTreeUpBottom(personId) {
+getIdsByName(firstNameInput, lastNameInput) {
+    var res = [];
+    var idsByFirstNames = [];
+    var idsByLastNames = [];
+    if (firstNameInput && firstNameInput !== "") {
+        idsByFirstNames = this.doSearchFirstName(firstNameInput);
+    }
+    if (lastNameInput && lastNameInput !== "") {
+        var idsByLastNames = this.doSearchLastName(lastNameInput);
+    }
+    for (let id in idsByFirstNames) {
+
+        if (-1 != idsByLastNames.indexOf(idsByFirstNames[id])) {
+            //Found First & Last name
+            res.push(idsByFirstNames[id]);
+        }
+    }
+    if (0 == res.length) {
+        res = idsByFirstNames.concat(idsByLastNames);
+    }
+    return res;
+}
+
+ makeTreeUpBottom(personId) {
     // debugger;
     if (true) {
-        var root = { text: { name: getFullNameById(personId) }, button: { id: personId, label: "+", onClick: handleButtonsMaping } };
+        var root = { text: { name: this.getFullNameById(personId) }, button: { id: personId, label: "+", onClick: this.handleButtonsMaping } };
     } else {
-        var root = { text: { name: getFullNameById(personId) } };
+        var root = { text: { name: this.getFullNameById(personId) } };
     }
-    const title = getCommentsById(personId);
+    const title = this.getCommentsById(personId);
     (title) ? root.text["title"] = title: null;
     //root.text["id"] = personId;
-    const spouseId = getSpouseIdById(personId);
+    const spouseId = this.getSpouseIdById(personId);
     let spouse;
     if (true) {
-        spouse = (spouseId) ? { text: { name: getFullNameById(spouseId), comments: getCommentsById(spouseId) }, button: { id: spouseId, label: "+", onClick: handleButtonsMaping } } : null;
+        spouse = (spouseId) ? { text: { name: this.getFullNameById(spouseId), comments: this.getCommentsById(spouseId) }, button: { id: spouseId, label: "+", onClick: this.handleButtonsMaping } } : null;
     } else {
-        spouse = (spouseId) ? { text: { name: getFullNameById(spouseId), comments: getCommentsById(spouseId) } } : null;
+        spouse = (spouseId) ? { text: { name: this.getFullNameById(spouseId), comments: this.getCommentsById(spouseId) } } : null;
     }
     if (spouse) {
         //spouse.text["id"] = spouseId;
@@ -703,38 +450,38 @@ function makeTreeUpBottom(personId) {
     }
     chart_config.push(root);
     chart_config[0].rootOrientation = "NORTH";
-    insertChildernRec(personId, root);
+    this.insertChildernRec(personId, root);
     return chart_config;
 }
 
 
-function handleParent(idParent1, perosnId) {
+ handleParent(idParent1, perosnId) {
     //personsUpBottom= {};
-    if (!personsUpBottom[idParent1]) {
-        var person = { "name": getFullNameById(idParent1), "children": [], "id": idParent1 };
-        person.children.push(personId);
+    if (!this.personsUpBottom[idParent1]) {
+        var person = { "name": this.getFullNameById(idParent1), "children": [], "id": idParent1 };
+        person.children.push(perosnId);
         //personsUpBottom.parentName = person;
-        personsUpBottom[idParent1] = person; //children.push(childName);
+        this.personsUpBottom[idParent1] = person; //children.push(childName);
 
     } else {
-        personsUpBottom[idParent1].children.push(perosnId);
+        this.personsUpBottom[idParent1].children.push(perosnId);
     }
     //debugger;
-    if (localDataBase[idParent1].spouse) {
-        personsUpBottom[idParent1].spouse = localDataBase[idParent1].spouse;
+    if (this.localDataBase[idParent1].spouse) {
+        this.personsUpBottom[idParent1].spouse = this.localDataBase[idParent1].spouse;
     }
 }
 
-function insertDataUpBottom(perosnId) {
+ insertDataUpBottom(perosnId) {
     // debugger;
-    var idParent1 = localDataBase[perosnId].parent1;
-    var idParent2 = localDataBase[perosnId].parent2;
+    var idParent1 = this.localDataBase[perosnId].parent1;
+    var idParent2 = this.localDataBase[perosnId].parent2;
     //var nameChild = localDataBase[perosnId].name;
-    ("" !== idParent1 && idParent1) ? handleParent(idParent1, perosnId): null;
-    ("" !== idParent2 && idParent2) ? handleParent(idParent2, perosnId): null;
+    ("" !== idParent1 && idParent1) ? this.handleParent(idParent1, perosnId): null;
+    ("" !== idParent2 && idParent2) ? this.handleParent(idParent2, perosnId): null;
 }
 
-function connect(chart_config) {
+ connect(chart_config) {
     var i = 1;
     for (i; i < chart_config.length; i++) {
         if (children = chart_config[i].children) {
@@ -754,14 +501,14 @@ function connect(chart_config) {
     }
 }
 
-function updateHeaderDetailsById(id) {
+ updateHeaderDetailsById(id) {
     if (id) {
-        updateHeaderDetails(localDataBase[id].firstName);
+        updateHeaderDetails(this.localDataBase[id].firstName);
     }
 }
 
 
-function buildTree(event) {
+ buildTree(event) {
     var pre = document.getElementById("content");
     $("#content").empty();
     var container = document.createElement("div");
@@ -769,102 +516,62 @@ function buildTree(event) {
     container.classList.add("chart")
     pre.appendChild(container);
     var chart_config;
-    updateHeaderDetailsById(event.target.who);
+    this.updateHeaderDetailsById(event.target.who);
     if ("build_tree_children_button" === event.target.id) {
-        chart_config = startMakeTreeUpBottom(event.target);
+        chart_config = this.startMakeTreeUpBottom(event.target);
     } else if ("build_tree_parents_button" === event.target.id) {
-        chart_config = startMakeTreeBottomUp(event.target);
+        chart_config = this.startMakeTreeBottomUp(event.target);
     } else {
         console.log("err");
     }
     new Treant(chart_config);
-    connect(chart_config);
-
-
-
+    this.connect(chart_config);
 }
 
-var idsAfterSearch = [];
-var whoNextToSearch = 0;
+ idsAfterSearch = [];
+ whoNextToSearch = 0;
 
 
 
-function closeSearchDiaolog() {
+ closeSearchDiaolog() {
     $("#search_dialog")[0].close();
-    document.getElementById('firstName_search').value = ""
-    document.getElementById('lastName_search').value = ""
+    (<HTMLInputElement>document.getElementById('firstName_search')).value = "";
+    (<HTMLInputElement>document.getElementById('lastName_search')).value = ""
 }
 
 
-function doSearch(isParamsFromUrl) {
-	whoNextToSearch = 0;
-	var firstNameInput = "";
-	var lastNameInput = "";
-	if (isParamsFromUrl.isParamsFromUrl){
-		firstNameInput= paramsFromUrl.firstName;
-		lastNameInput = paramsFromUrl.lastName;
-	}else{
-		 firstNameInput = document.getElementById('firstName_search').value;
-		 lastNameInput = document.getElementById('lastName_search').value;
-	}
-	idsAfterSearch = [];
-	idsAfterSearch = getIdsByName(firstNameInput, lastNameInput);
-	presentNextSearch();
-	closeSearchDiaolog();
 
-}
 
-function presentNextSearch() {
-	var currentIndexForSearch =  whoNextToSearch % idsAfterSearch.length
-	const event = { target: { value: idsAfterSearch[currentIndexForSearch] } }
+ presentNextSearch() {
+	var currentIndexForSearch =  this.whoNextToSearch % this.idsAfterSearch.length
+	const event = { target: { value: this.idsAfterSearch[currentIndexForSearch] } }
 	randerDownTree(event);
-	whoNextToSearch = currentIndexForSearch + 1;
+	this.whoNextToSearch = currentIndexForSearch + 1;
 }
 
-function doSearchFirstName(name) {
+ doSearchFirstName(name) {
     let ids = [];
-    for (index in localDataBase) {
-        if (localDataBase[index].firstName.toLowerCase() == name.toLowerCase()) {
-            ids.push(localDataBase[index].id);
+    for (index in this.localDataBase) {
+        if (this.localDataBase[index].firstName.toLowerCase() == name.toLowerCase()) {
+            ids.push(this.localDataBase[index].id);
         }
     }
     return ids;
 }
 
-function doSearchLastName(name) {
+ doSearchLastName(name) {
     let ids = [];
-    for (index in localDataBase) {
-        if (localDataBase[index].lastName.toLowerCase() == name.toLowerCase()) {
-            ids.push(localDataBase[index].id);
+    for (index in this.localDataBase) {
+        if (this.localDataBase[index].lastName.toLowerCase() == name.toLowerCase()) {
+            ids.push(this.localDataBase[index].id);
         }
     }
     return ids;
 }
 
-function getIdsByName(firstNameInput, lastNameInput) {
-    var res = [];
-    var idsByFirstNames = [];
-    var idsByLastNames = [];
-    if (firstNameInput && firstNameInput !== "") {
-        idsByFirstNames = doSearchFirstName(firstNameInput);
-    }
-    if (lastNameInput && lastNameInput !== "") {
-        var idsByLastNames = doSearchLastName(lastNameInput);
-    }
-    for (let id in idsByFirstNames) {
 
-        if (-1 != idsByLastNames.indexOf(idsByFirstNames[id])) {
-            //Found First & Last name
-            res.push(idsByFirstNames[id]);
-        }
-    }
-    if (0 == res.length) {
-        res = idsByFirstNames.concat(idsByLastNames);
-    }
-    return res;
-}
 
-function startMakeTreeUpBottom(target) {
+ startMakeTreeUpBottom(target) {
     console.log("start");
     var idInput = (target.who) ? { value: target.who } : document.getElementById('id_input');
 
@@ -873,26 +580,26 @@ function startMakeTreeUpBottom(target) {
     //var idInput = document.getElementById('id_input');
     var temp = chart_config.slice(0, 1);
     chart_config = temp;
-    return makeTreeUpBottom(id);
+    return this.makeTreeUpBottom(id);
 }
 
-function startMakeTreeBottomUp(target) {
+ startMakeTreeBottomUp(target) {
     console.log("start");
     //(event.res)? 
     var idInput = (target.who) ? { value: target.who } : document.getElementById('id_input');
     var id = idInput.value;
     var temp = chart_config.slice(0, 1);
     chart_config = temp;
-    return makeTreeBottomUp(id);
+    return 	this.makeTreeBottomUp(id);
 }
 
 
-function insertDataBottomUp(perosnId) {
+ insertDataBottomUp(perosnId) {
     //persons ={};
     //	debugger;
-    var name = localDataBase[perosnId].firstName + localDataBase[perosnId].lastName;
-    var parent1 = parseInt(localDataBase[perosnId].parent1);
-    var parent2 = parseInt(localDataBase[perosnId].parent2);
+    var name = this.localDataBase[perosnId].firstName + this.localDataBase[perosnId].lastName;
+    var parent1 = parseInt(this.localDataBase[perosnId].parent1);
+    var parent2 = parseInt(this.localDataBase[perosnId].parent2);
     var person = {};
     if (perosnId) {
         var person = { "name": name };
@@ -903,12 +610,12 @@ function insertDataBottomUp(perosnId) {
             person.parent2 = parent2;
         }
         //var person = {"name": name, "parent1": parent1, "parent2": parent2};
-        persons[perosnId] = person;
+        this.persons[perosnId] = person;
     }
 
 }
 
-function insertNewRowToLocalDataBase(row) {
+ insertNewRowToLocalDataBase(row) {
     //debugger;
     //TODO: improve condition
     if ("id" == row[0]) { return; }
@@ -924,7 +631,7 @@ function insertNewRowToLocalDataBase(row) {
         comments = comments + " " + row[7];
     }
 
-    localDataBase[id] = {
+    this.localDataBase[id] = {
         "id": id,
         "firstName": firstName,
         "lastName": lastName,
@@ -935,7 +642,7 @@ function insertNewRowToLocalDataBase(row) {
     }
 }
 
-function listMajors(sheetIdInput) {
+ listMajors(sheetIdInput) {
 	var sheetId = sheetIdInput;
 	if (!sheetId) {
 		document.getElementById("error_sheetUrl").classList.remove("hidden");
@@ -946,10 +653,10 @@ function listMajors(sheetIdInput) {
 		spreadsheetId: sheetId,
 		range: 'A1:H',
 	}).then(function (response) {
-		isUserHavePremission = true;
+		this.isUserHavePremission = true;
 		SHEET_ID = sheetId;
-		parseDataSheetsToMultiArray(data.feed.entry);
-		loadFamilyTree(sheetIdInput);
+		this.parseDataSheetsToMultiArray(data.feed.entry);
+		this.loadFamilyTree(sheetIdInput);
 		hideWellcomeDialog();
 	}, function (err) {
 		console.log(err);
@@ -968,7 +675,7 @@ function listMajors(sheetIdInput) {
 
 //TODO: write config file for secure
 //getRow return array. the array represent line at spreedsheet. which cell is string at the array
-function parseDataSheetsToMultiArray(data) {
+ parseDataSheetsToMultiArray(data) {
 	const res = [];
 	let index = 8; // skip first line TODO: make ocnfigurable
 	let lastNumberLine = data[index].gs$cell.row;
@@ -992,7 +699,7 @@ function parseDataSheetsToMultiArray(data) {
 }
 
 
-function parseCsvToMultiArray(csv) {
+ parseCsvToMultiArray(csv) {
 	const res = [];
 	let index = 0 // skip first line TODO: make ocnfigurable
 	var data = csv.split("\n");
@@ -1008,7 +715,7 @@ function parseCsvToMultiArray(csv) {
 }
 
 
-function readCsv(path){
+ readCsv(path){
 return new Promise((resolve, reject) => {
 	$.ajax({
 		type: "GET",  
@@ -1017,7 +724,7 @@ return new Promise((resolve, reject) => {
 		//TODO: add error handler 
 		success: function(response)  
 		{
-		  const dataArray = parseCsvToMultiArray(response);
+		  const dataArray = this.parseCsvToMultiArray(response);
 
 		  resolve(dataArray);
 		  //callbackLoadFamilyTreeSuccess();
@@ -1026,78 +733,33 @@ return new Promise((resolve, reject) => {
 })
 }
 
- function listMajorsApi4(sheetId) {
-	 return new Promise((resolve, reject)=> {
-		gapi.client.sheets.spreadsheets.values.get({
-			spreadsheetId: sheetId,
-			range: 'A1:H',
-		}).then(function (response) {
-			isUserHavePremission = true;
-			SHEET_ID = sheetId;
-			resolve(response.result.values);
-			//parseDataSheetsToMultiArray(response.result.values);
-			//loadFamilyTree();
-			//hideWellcomeDialog();
-		}, function (err) {
-			console.log(err);
-			document.getElementById("error_sheetUrl").classList.remove("hidden");
-			document.getElementById("error_sheetUrl").classList.add("shown");
-			reject(err);
-			return;
-		}).catch((err) => {
-			console.log(err);
-			document.getElementById("error_sheetUrl").classList.remove("hidden");
-			document.getElementById("error_sheetUrl").classList.add("shown");
-			reject(err);
-			return;
-		});
-	 })
-
-  }
-
-async function readFromGoogleSheets(sheetIdInput){
-	 return await listMajorsApi4(sheetIdInput);
-}
 
 
 
-async function loadFamilyTree(dataArray) {
+
+
+
+async  loadFamilyTree(dataArray) {
 
 	 //const  dataArray = await readCsv();
 	 //const dataArray = await readFromGoogleSheets(sheetIdInput);
 	if (dataArray){
 		for (var i = 0; i < dataArray.length; i++) {
-			insertNewRowToLocalDataBase(dataArray[i]);
+			this.insertNewRowToLocalDataBase(dataArray[i]);
 		}
-		for (personId in localDataBase) {
-			insertDataBottomUp(parseInt(personId));
-			insertDataUpBottom(parseInt(personId));
+		for (personId in this.localDataBase) {
+			this.insertDataBottomUp(parseInt(personId));
+			this.insertDataUpBottom(parseInt(personId));
 		}
 	} else {
+		throw new Error('empty table');  
 		// new table or a problem that not recognaized.
 	}
 
 	callbackLoadFamilyTreeSuccess();
-	hideWellcomeDialog();	 
+	hideWellcomeDialog();	
+	return true; 
 
 }
 
-
-/*
-const buildTreeChildrenButton = document.getElementById('build_tree_children_button');
-buildTreeChildrenButton.onclick = buildTree;
-
-const buildTreeParentsButton = document.getElementById('build_tree_parents_button');
-buildTreeParentsButton.onclick = buildTree;
-
-const nextSearchButton = document.getElementById('next_search');
-nextSearchButton.onclick = presentNextSearch;
-
-
-const doSearchButton = document.getElementById('do_search');
-doSearchButton.onclick = doSearch;
-
-const cancelButtonTextField = document.getElementById("cancelPersonDetails");
-cancelButtonTextField.onclick = closeDialogFields;
-
-*/
+}

@@ -35,12 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+var treeManager = new FreemilyTree();
 var paramsFromUrl = {};
 var isUserSignIn = false;
 var nextSearchButton = document.getElementById('next_search');
-nextSearchButton.onclick = presentNextSearch;
+nextSearchButton.onclick = treeManager.presentNextSearch;
 var hideSearchDialogButton = document.getElementById('button_hide_search_dialog');
-hideSearchDialogButton.onclick = closeSearchDiaolog;
+hideSearchDialogButton.onclick = treeManager.closeSearchDiaolog;
 var connectToCSVButton = document.getElementById("connect_csv_button");
 connectToCSVButton.onclick = connectToCSV;
 var chooseGoogleButton = document.getElementById("choose_google_button");
@@ -56,7 +57,7 @@ newUserConnectButton.onclick = newUserConnectClicked;
 var newUserButton = document.getElementById('new_user_button');
 newUserButton.onclick = newUserClicked;
 var cancelButtonTextField = document.getElementById("cancelPersonDetails");
-cancelButtonTextField.onclick = closeDialogFields;
+cancelButtonTextField.onclick = treeManager.closeDialogFields;
 var contentElement = document.getElementById('content');
 var zoomInButton = document.getElementById('zoom_in_button');
 zoomInButton.onclick = handleZoomInClicked;
@@ -67,6 +68,148 @@ function handleZoomOutClicked() {
     var basicExample = document.getElementById('basic-example');
     zoomInValue = zoomInValue - 0.1;
     basicExample.style['transform'] = "scale(" + zoomInValue + ")";
+}
+function doSearch(isParamsFromUrl) {
+    treeManager.whoNextToSearch = 0;
+    var firstNameInput = "";
+    var lastNameInput = "";
+    if (isParamsFromUrl.isParamsFromUrl) {
+        firstNameInput = paramsFromUrl.firstName;
+        lastNameInput = paramsFromUrl.lastName;
+    }
+    else {
+        firstNameInput = document.getElementById('firstName_search').value;
+        lastNameInput = document.getElementById('lastName_search').value;
+    }
+    treeManager.idsAfterSearch = [];
+    treeManager.idsAfterSearch = treeManager.getIdsByName(firstNameInput, lastNameInput);
+    treeManager.presentNextSearch();
+    treeManager.closeSearchDiaolog();
+}
+function randerDownTree(event) {
+    var temp = chart_config.slice(0, 1);
+    chart_config = temp;
+    var event = { target: { id: "build_tree_children_button", who: event.target.value } };
+    treeManager.buildTree(event);
+    window.setTimeout(treeManager.scrollToCenter, 1000);
+}
+function addSpouse(event) {
+    var person = event.target.person;
+    var firstNameSpouse = document.getElementById('firstName_input').value;
+    var lsatNameParentSpouse = document.getElementById('lastName_input').value;
+    var commentsSpouse = document.getElementById('textFiledInputcomment').value;
+    var idSpouse = treeManager.getNewId();
+    treeManager.addSpouseToLocalDataBase(idSpouse, firstNameSpouse, lsatNameParentSpouse, person.id, commentsSpouse);
+    var range = "";
+    var bodyId = {
+        values: [
+            [idSpouse]
+        ]
+    };
+    var bodyFirstName = {
+        values: [
+            [firstNameSpouse]
+        ]
+    };
+    var bodyLastName = {
+        values: [
+            [lsatNameParentSpouse]
+        ]
+    };
+    var bodySpouse = {
+        values: [
+            [idSpouse]
+        ]
+    };
+    var bodyIdPerson = {
+        values: [
+            [person.id]
+        ]
+    };
+    var rowRange = 1 + idSpouse;
+    range = "A" + (rowRange);
+    treeManager.editCell(bodyId, range);
+    treeManager.addFirstNameToSheets(rowRange, bodyFirstName);
+    treeManager.addLastNameToSheets(rowRange, bodyLastName);
+    treeManager.addSpouseToSheets(rowRange, bodyIdPerson);
+    treeManager.addCommentToSheets(rowRange, commentsSpouse);
+    treeManager.addSpouseToSheets((parseInt(person.id) + 1), bodySpouse);
+    var children = treeManager.getAllChildren(person.id);
+    if (children) {
+        children.forEach(function (child) {
+            treeManager.addParentToChildLocalDataBase(idSpouse, null, null, child);
+            var value = {
+                values: [
+                    [idSpouse]
+                ]
+            };
+            treeManager.addParentToChildToSheet(child, value);
+        });
+    }
+    var dialogFields = document.getElementById('dialogFields');
+    treeManager.closeDialogFields();
+    treeManager.syncTreeAfterInsertNewData(person, "down");
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.removeEventListener("click", addSpouse);
+}
+function handleAddSpouse(event) {
+    var person = event.target.person;
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', addSpouse);
+    buttonSavePerson.person = person;
+    var dialogAdd = document.getElementById('dialogAdd');
+    var dialogFields = document.getElementById('dialogFields');
+    dialogAdd.close();
+    dialogFields.showModal();
+    var buttonAddSpouse = document.getElementById("button_add_spouse");
+    buttonAddSpouse.removeEventListener("click", handleAddSpouse);
+}
+function handleAddParent(event) {
+    var person = event.target.person;
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', addParentToChild);
+    buttonSavePerson.person = person;
+    var dialogAdd = document.getElementById('dialogAdd');
+    var dialogFields = document.getElementById('dialogFields');
+    dialogAdd.close();
+    dialogFields.showModal();
+    var buttonAddParent = document.getElementById("button_add_parent");
+    buttonAddParent.removeEventListener("click", handleAddParent);
+}
+function handleAddChild(event) {
+    var person = event.target.person;
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', addChildToParent);
+    buttonSavePerson.person = person;
+    var dialogAdd = document.getElementById('dialogAdd');
+    var dialogFields = document.getElementById('dialogFields');
+    dialogAdd.close();
+    dialogFields.showModal();
+    var buttonAddChild = document.getElementById("button_add_child");
+    buttonAddChild.removeEventListener("click", handleAddChild);
+}
+function handleButtonEditClick(event) {
+    var dialog = document.getElementById('dialogAdd');
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.addEventListener('click', treeManager.saveCommentsToSheet);
+    var containerButtonsAddDialog = document.getElementById("containerButtonsAddDialog");
+    var buttons = treeManager.getRelevantButtons(event);
+    for (button in buttons) {
+        containerButtonsAddDialog.insertAdjacentElement("beforeend", buttons[button]);
+    }
+    dialog.showModal();
+    var body = {
+        values: [
+            ["dfvdsv"]
+        ]
+    };
+}
+function randerUpTree(event) {
+    var temp = chart_config.slice(0, 1);
+    chart_config = temp;
+    var event = { target: { id: "build_tree_parents_button", who: event.target.value } };
+    treeManager.buildTree(event);
+    window.setTimeout(treeManager.scrollToCenter, 1000);
 }
 function handleZoomInClicked() {
     var basicExample = document.getElementById('basic-example');
@@ -111,6 +254,106 @@ function getQueryParams(qs) {
         params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
     }
     return params;
+}
+function addChildToParent(event) {
+    var person = event.target.person;
+    var firstNameChild = $("#firstName_input").val();
+    var lsatNameChild = $("#lastName_input").val();
+    var commentsChild = $("#textFiledInputcomment").val();
+    var idChild = treeManager.getNewId();
+    treeManager.addChildrenToLocalDataBase(idChild, firstNameChild, lsatNameChild, person.id, parseInt(person.spouse), commentsChild);
+    var range = "";
+    var bodyId = {
+        values: [
+            [idChild]
+        ]
+    };
+    var bodyFirstName = {
+        values: [
+            [firstNameChild]
+        ]
+    };
+    var bodyLastName = {
+        values: [
+            [lsatNameChild]
+        ]
+    };
+    var bodyParent1 = {
+        values: [
+            [person.id]
+        ]
+    };
+    var rowRange = 1 + idChild;
+    range = "A" + (rowRange);
+    treeManager.editCell(bodyId, range);
+    treeManager.addFirstNameToSheets(rowRange, bodyFirstName);
+    treeManager.addLastNameToSheets(rowRange, bodyLastName);
+    treeManager.addParentToChildToSheet(idChild, bodyParent1, null, 1);
+    treeManager.addCommentToSheets(rowRange, commentsChild);
+    if (person.spouse) {
+        var bodyParent2 = {
+            values: [
+                [treeManager.localDataBase[parseInt(person.spouse)].id]
+            ]
+        };
+        treeManager.addParentToChildToSheet(idChild, bodyParent2);
+    }
+    var dialogFields = document.getElementById('dialogFields');
+    treeManager.closeDialogFields();
+    treeManager.syncTreeAfterInsertNewData(person, "down");
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.removeEventListener("click", addChildToParent);
+}
+function addParentToChild(event) {
+    var child = event.target.person;
+    var firstNameParent = document.getElementById('firstName_input').value;
+    var lsatNameParent = document.getElementById('lastName_input').value;
+    var commentsParent = document.getElementById('textFiledInputcomment').value;
+    var idParent = treeManager.getNewId();
+    treeManager.addParentToChildLocalDataBase(idParent, firstNameParent, lsatNameParent, child.id, commentsParent);
+    var range = "";
+    var bodyId = {
+        values: [
+            [idParent]
+        ]
+    };
+    var bodyFirstName = {
+        values: [
+            [firstNameParent]
+        ]
+    };
+    var bodyLastName = {
+        values: [
+            [lsatNameParent]
+        ]
+    };
+    var bodyComments = {
+        values: [
+            [commentsParent]
+        ]
+    };
+    var rowRange = 1 + idParent;
+    range = "A" + (rowRange);
+    treeManager.editCell(bodyId, range);
+    range = "B" + rowRange;
+    treeManager.editCell(bodyFirstName, range);
+    range = "C" + rowRange;
+    treeManager.editCell(bodyLastName, range);
+    treeManager.addCommentToSheets(rowRange, bodyComments);
+    var value = {
+        values: [
+            [idParent]
+        ]
+    };
+    treeManager.addParentToChildToSheet(child.id, value, function () {
+        treeManager.connectSpouseRelationshipByChildLocalDatabase(child.id, idParent);
+        treeManager.connectSpouseRelationshipByChildRemoteStorageSheets(child.id, idParent);
+        var dialogFields = document.getElementById('dialogFields');
+        treeManager.closeDialogFields();
+        treeManager.syncTreeAfterInsertNewData(child);
+    });
+    var buttonSavePerson = document.getElementById("savePersonDetails");
+    buttonSavePerson.removeEventListener("click", addParentToChild);
 }
 function ScrollZoom(container, max_scale, factor) {
     var target = container.children().first();
@@ -317,17 +560,89 @@ function getFromUserGoogleSheetId(params) {
         });
     });
 }
+function listMajorsApi4(sheetId) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2, new Promise(function (resolve, reject) {
+                    gapi.client.sheets.spreadsheets.values.get({
+                        spreadsheetId: sheetId,
+                        range: 'A1:H'
+                    }).then(function (response) {
+                        treeManager.isUserHavePremission = true;
+                        SHEET_ID = sheetId;
+                        resolve(response.result.values);
+                    }, function (err) {
+                        console.log(err);
+                        document.getElementById("error_sheetUrl").classList.remove("hidden");
+                        document.getElementById("error_sheetUrl").classList.add("shown");
+                        reject(err);
+                        return;
+                    })["catch"](function (err) {
+                        console.log(err);
+                        document.getElementById("error_sheetUrl").classList.remove("hidden");
+                        document.getElementById("error_sheetUrl").classList.add("shown");
+                        reject(err);
+                        return;
+                    });
+                })];
+        });
+    });
+}
+function readFromGoogleSheets(sheetIdInput) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4, listMajorsApi4(sheetIdInput)];
+                case 1: return [2, _a.sent()];
+            }
+        });
+    });
+}
+function createTitlesInGoogleSheets() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2];
+        });
+    });
+}
+function askFromUserInsertTheFirstPerson() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2];
+        });
+    });
+}
 function start() {
     return __awaiter(this, void 0, void 0, function () {
-        var data;
+        var data, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log("start");
-                    return [4, readData()];
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 7, , 8]);
+                    return [4, readData()];
+                case 2:
                     data = _a.sent();
-                    loadFamilyTree(data);
+                    if (!!data) return [3, 6];
+                    return [4, createTitlesInGoogleSheets()];
+                case 3:
+                    _a.sent();
+                    return [4, askFromUserInsertTheFirstPerson()];
+                case 4:
+                    _a.sent();
+                    return [4, readData()];
+                case 5:
+                    data = _a.sent();
+                    _a.label = 6;
+                case 6: return [3, 8];
+                case 7:
+                    err_1 = _a.sent();
+                    console.log(err_1);
+                    return [3, 8];
+                case 8:
+                    treeManager.loadFamilyTree(data);
                     updateHeaderDetails("");
                     paramsFromUrl = getParamsFromUrl();
                     if (paramsFromUrl.db) {
