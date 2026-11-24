@@ -1,0 +1,9 @@
+# Per-deployment settings (see config.example.js and .deploy.env.example)
+config.js
+.deploy.env
+
+# Local tooling and OS files
+.claude/
+.DS_Store
+node_modules/
+*.log

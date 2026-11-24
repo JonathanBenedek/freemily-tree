@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Family Tree</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#7b4f2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Family Tree" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <!-- ===== GUIDE SCREEN (built by onboarding.js) ===== -->
+  <div id="guide-screen" class="screen">
+    <div class="guide-card">
+      <div class="guide-top">
+        <button id="guide-close-btn" class="guide-close" aria-label="Close guide">✕</button>
+        <div id="guide-progress-label" class="guide-progress-label"></div>
+      </div>
+      <div class="guide-progress"><div id="guide-progress-bar" class="guide-progress-bar"></div></div>
+      <div id="guide-body" class="guide-body"></div>
+      <div id="guide-footer" class="guide-footer">
+        <button id="guide-back-btn" class="btn btn-secondary">← Back</button>
+        <button id="guide-next-btn" class="btn btn-primary">Next step →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SETUP SCREEN ===== -->
+  <div id="setup-screen" class="screen">
+    <div class="setup-card">
+      <div class="setup-logo">🌳</div>
+      <h1>Family Tree</h1>
+      <p class="setup-subtitle">Connect your Google Sheet to visualize and manage your family tree</p>
+      <p class="setup-guide-link">New here or stuck? <a href="#" id="setup-open-guide-link">Open the step-by-step guide →</a></p>
+
+      <div class="form-group">
+        <label for="sheet-id-input">Google Sheet link or ID <span class="required">*</span></label>
+        <input type="text" id="sheet-id-input" placeholder="Paste your Google Sheet link here" />
+        <small>Copy it from your browser's address bar while the sheet is open. The sheet must be shared as "Anyone with the link can view".</small>
+      </div>
+
+      <p class="setup-edit-note">✏️ <strong>Editing is built in.</strong> After your tree opens, tap <strong>Sign in to edit</strong> at the top. Anyone you add as an Editor of the sheet can edit too.</p>
+
+      <details class="setup-advanced" id="setup-advanced">
+        <summary>Advanced: use your own Google setup</summary>
+        <p class="setup-advanced-intro">Only needed if you prefer your own Google Cloud Client ID or an Apps Script. Leave empty to use the built-in sign-in.</p>
+        <div class="edit-options">
+          <div class="edit-option">
+            <div class="edit-option-label">Your own Client ID</div>
+            <input type="text" id="client-id-input" placeholder="xxxxxxxx.apps.googleusercontent.com" />
+            <input type="email" id="allowed-email-input" placeholder="your@email.com (only this account can edit)" style="margin-top:6px;" />
+            <small><a href="#" id="show-oauth-help-link">How to get a Client ID (step by step) →</a></small>
+          </div>
+          <div class="edit-option-sep">or</div>
+          <div class="edit-option">
+            <div class="edit-option-label">Apps Script URL</div>
+            <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" />
+            <small><a href="#" id="show-help-link">How to set up Apps Script →</a></small>
+          </div>
+        </div>
+      </details>
+
+      <button id="load-btn" class="btn btn-primary">Load Family Tree</button>
+      <div id="setup-error" class="error-msg hidden"></div>
+
+      <div class="setup-divider">or use a local file</div>
+
+      <div class="setup-file-row">
+        <button id="export-btn" class="btn btn-secondary">⬇ Export CSV</button>
+        <button id="import-btn" class="btn btn-secondary">⬆ Import CSV</button>
+        <input type="file" id="import-file-input" accept=".csv" style="display:none" />
+      </div>
+
+      <p class="setup-legal">
+        <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a>
+      </p>
+      <p class="made-by">Made with ❤️ by <a href="https://www.linkedin.com/in/jonathan-benedek-58a039123/" target="_blank" rel="noopener">Jonathan Benedek</a></p>
+    </div>
+  </div>
+
+  <!-- ===== TREE SCREEN ===== -->
+  <div id="tree-screen" class="screen">
+    <nav class="navbar">
+      <div class="tree-switcher">
+        <button type="button" id="tree-switcher-btn" class="tree-switcher-btn" aria-haspopup="menu" aria-expanded="false" title="Switch family tree">
+          <span class="tree-switcher-icon">🌳</span><span id="tree-switcher-name" class="tree-switcher-name">Family Tree</span><span class="tree-switcher-caret">▾</span>
+        </button>
+        <div id="tree-menu" class="tree-menu hidden" role="menu"></div>
+      </div>
+      <div class="search-container">
+        <input type="text" id="search-input" class="search-input" placeholder="Search person…" autocomplete="off" />
+        <div id="search-dropdown" class="search-dropdown hidden"></div>
+      </div>
+      <div class="nav-actions">
+        <button id="share-btn" class="btn btn-sm btn-share">🔗 Share</button>
+        <button id="signin-btn" class="btn btn-sm hidden">Sign in with Google</button>
+        <button id="refresh-btn" class="btn btn-sm">↻ Refresh</button>
+        <button id="howto-btn" class="btn btn-sm">❓ How to</button>
+        <button id="change-sheet-btn" class="btn btn-sm">⚙ Settings</button>
+      </div>
+    </nav>
+
+    <!-- Focus-mode banner (hidden in full-tree mode) -->
+    <div id="mode-bar" class="mode-bar hidden">
+      <span id="mode-label"></span>
+      <button id="back-to-full-btn" class="btn btn-sm">✕ Full tree</button>
+    </div>
+
+    <div id="tree-container">
+      <!-- ===== HOME PANEL: shown on the tree screen when no tree is open ===== -->
+      <div id="home-panel" class="home-panel hidden">
+        <div class="welcome-card">
+          <div class="setup-logo">🌳</div>
+          <h1>Family Tree</h1>
+          <p class="welcome-tagline" id="home-tagline">See your whole family in one interactive tree — on your phone or computer. Free, and your data stays in your own Google Sheet.</p>
+
+          <ul class="welcome-perks" id="home-perks">
+            <li><span>🔍</span>Find anyone in seconds</li>
+            <li><span>🔗</span>Share one link with the whole family</li>
+            <li><span>🔒</span>Only people you choose can make changes</li>
+          </ul>
+
+          <button id="guide-resume-btn" class="btn btn-primary welcome-btn hidden"></button>
+          <button id="home-signin-btn" class="btn btn-primary welcome-btn">
+            Sign in with Google
+            <span class="welcome-btn-sub">See your family trees on any device</span>
+          </button>
+          <button id="guide-start-btn" class="btn btn-secondary welcome-btn">
+            How to start
+            <span class="welcome-btn-sub">Start a new tree, or open one you have</span>
+          </button>
+          <button id="welcome-skip-btn" class="link-btn home-settings-link">Settings</button>
+
+          <p class="setup-legal">
+            <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms of Service</a>
+          </p>
+          <p class="made-by">Made with ❤️ by <a href="https://www.linkedin.com/in/jonathan-benedek-58a039123/" target="_blank" rel="noopener">Jonathan Benedek</a></p>
+        </div>
+      </div>
+      <svg id="tree-svg">
+        <defs>
+          <clipPath id="avatar-clip">
+            <circle cx="24" cy="24" r="22" />
+          </clipPath>
+        </defs>
+        <g id="tree-root"></g>
+      </svg>
+      <a class="made-by-badge" href="https://www.linkedin.com/in/jonathan-benedek-58a039123/" target="_blank" rel="noopener" title="Jonathan Benedek on LinkedIn">Made by Jonathan Benedek</a>
+      <div id="zoom-controls">
+        <button id="zoom-in-btn" class="zoom-btn" title="Zoom In">+</button>
+        <button id="zoom-reset-btn" class="zoom-btn" title="Reset View">⌂</button>
+        <button id="zoom-out-btn" class="zoom-btn" title="Zoom Out">−</button>
+      </div>
+    </div>
+    <div id="loading-overlay" class="hidden">
+      <div class="spinner"></div>
+      <p>Loading family tree…</p>
+    </div>
+  </div>
+
+  <!-- ===== ADD PERSON MODAL ===== -->
+  <div id="add-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Person</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <form id="add-form">
+        <input type="hidden" id="form-relation" />
+        <input type="hidden" id="form-related-to" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-first-name">First Name <span class="required">*</span></label>
+            <input type="text" id="form-first-name" required enterkeyhint="done" />
+          </div>
+          <div class="form-group">
+            <label for="form-last-name">Last Name</label>
+            <input type="text" id="form-last-name" enterkeyhint="done" />
+          </div>
+        </div>
+
+        <!-- Parent section — shown only when adding a child -->
+        <div id="form-parents-section" class="hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Parent 1</label>
+              <div id="form-parent1-display" class="parent-display"></div>
+            </div>
+            <div class="form-group" style="position:relative;">
+              <label for="form-parent2-search">Parent 2 <span class="optional">(optional)</span></label>
+              <input type="hidden" id="form-parent2-id" />
+              <input type="text" id="form-parent2-search" placeholder="Search person…" autocomplete="off" enterkeyhint="done" />
+              <div id="form-parent2-dropdown" class="search-dropdown hidden"></div>
+              <small>If set, both parents will be linked as spouses.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="form-picture">Photo URL</label>
+          <input type="url" id="form-picture" placeholder="https://example.com/photo.jpg" enterkeyhint="done" />
+        </div>
+
+        <div class="form-group">
+          <label for="form-comments">Comments</label>
+          <textarea id="form-comments" rows="2" placeholder="Birth year, notes…" enterkeyhint="done"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="form-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="form-submit-btn" class="btn btn-primary">Add Person</button>
+        </div>
+        <div id="form-error" class="error-msg hidden"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== EDIT PERSON MODAL ===== -->
+  <div id="edit-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Person</h2>
+        <button class="modal-close" id="edit-modal-close-btn">✕</button>
+      </div>
+      <form id="edit-form">
+        <input type="hidden" id="edit-form-id" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-form-first-name">First Name <span class="required">*</span></label>
+            <input type="text" id="edit-form-first-name" required enterkeyhint="done" />
+          </div>
+          <div class="form-group">
+            <label for="edit-form-last-name">Last Name</label>
+            <input type="text" id="edit-form-last-name" enterkeyhint="done" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-form-picture">Photo URL</label>
+          <input type="url" id="edit-form-picture" placeholder="https://example.com/photo.jpg" enterkeyhint="done" />
+        </div>
+        <div class="form-group">
+          <label for="edit-form-comments">Comments</label>
+          <textarea id="edit-form-comments" rows="2" placeholder="Birth year, notes…" enterkeyhint="done"></textarea>
+        </div>
+        <div class="modal-actions" style="justify-content:space-between;align-items:center;gap:12px;">
+          <button type="button" id="edit-form-delete-btn" class="btn btn-danger btn-icon" title="Remove person">🗑</button>
+          <button type="submit" id="edit-form-submit-btn" class="btn btn-primary" style="flex:1;">Save</button>
+        </div>
+        <div id="edit-form-error" class="error-msg hidden"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== CONTEXT MENU ===== -->
+  <div id="context-menu" class="context-menu hidden">
+    <button id="ctx-add-child" class="ctx-item">👶 Add Child</button>
+    <button id="ctx-add-spouse" class="ctx-item">💑 Add Spouse</button>
+    <button id="ctx-add-parent" class="ctx-item">👴 Add Parent</button>
+  </div>
+
+  <!-- ===== PERSON DETAIL PANEL ===== -->
+  <div id="detail-panel" class="detail-panel hidden">
+    <button id="detail-close" class="detail-close">✕</button>
+    <div id="detail-avatar" class="detail-avatar"></div>
+    <div id="detail-name" class="detail-name"></div>
+    <div id="detail-meta" class="detail-meta"></div>
+    <div id="detail-comments" class="detail-comments"></div>
+  </div>
+
+  <!-- ===== SETUP HELP MODAL ===== -->
+  <div id="help-modal" class="modal-backdrop hidden">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Enable Editing — Apps Script Setup</h2>
+        <button class="modal-close" id="help-close-btn">✕</button>
+      </div>
+      <div class="help-content">
+        <ol>
+          <li>Open your Google Sheet.</li>
+          <li>Go to <strong>Extensions → Apps Script</strong>.</li>
+          <li>Replace any existing code with the script below and click <strong>Save</strong>.</li>
+          <li>Click <strong>Deploy → New deployment</strong>.</li>
+          <li>Choose type: <strong>Web app</strong>. Set "Execute as: Me" and "Who has access: Anyone".</li>
+          <li>Click <strong>Deploy</strong>, authorize, then copy the <strong>Web app URL</strong>.</li>
+          <li>Paste that URL into the "Apps Script URL" field on the setup screen.</li>
+        </ol>
+        <pre class="code-block" id="apps-script-code">function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    const data = JSON.parse(e.postData.contents);
+    const values = sheet.getDataRange().getValues();
+
+    function findRow(id) {
+      for (let i = 1; i < values.length; i++)
+        if (String(values[i][0]) === String(id)) return i + 1;
+      return -1;
+    }
+
+    if (data.action === 'updateSpouse') {
+      const row = findRow(data.id);
+      if (row === -1) return ok({ success: false, error: 'ID not found' });
+      sheet.getRange(row, 6).setValue(data.spouse);
+      return ok({ success: true });
+    }
+
+    if (data.action === 'updateParent') {
+      const row = findRow(data.id);
+      if (row === -1) return ok({ success: false, error: 'ID not found' });
+      // col 4 = parent1, col 5 = parent2
+      sheet.getRange(row, data.slot === 'parent2' ? 5 : 4).setValue(data.parentId);
+      return ok({ success: true });
+    }
+
+    if (data.action === 'updatePerson') {
+      const row = findRow(data.id);
+      if (row === -1) return ok({ success: false, error: 'ID not found' });
+      sheet.getRange(row, 2).setValue(data.firstName);
+      sheet.getRange(row, 3).setValue(data.lastName);
+      sheet.getRange(row, 7).setValue(data.picture || '');
+      sheet.getRange(row, 8).setValue(data.comments || '');
+      return ok({ success: true });
+    }
+
+    if (data.action === 'deletePerson') {
+      const row = findRow(data.id);
+      if (row === -1) return ok({ success: false, error: 'ID not found' });
+      sheet.deleteRow(row);
+      return ok({ success: true });
+    }
+
+    // Default: append new person row
+    sheet.appendRow([
+      data.id, data.firstName, data.lastName,
+      data.parent1 || '', data.parent2 || '',
+      data.spouse  || '', data.picture || '', data.comments || ''
+    ]);
+    return ok({ success: true });
+  } catch (err) {
+    return ok({ success: false, error: err.toString() });
+  }
+}
+
+function ok(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ok({ status: 'ok' });
+}</pre>
+        <button id="copy-script-btn" class="btn btn-secondary">Copy Script</button>
+      </div>
+      <div class="modal-actions">
+        <button id="help-done-btn" class="btn btn-primary">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHARE MODAL (share.js) ===== -->
+  <div id="share-modal" class="modal-backdrop hidden">
+    <div class="modal share-modal" role="dialog" aria-labelledby="share-title">
+      <div class="modal-header">
+        <h2 id="share-title">Share</h2>
+        <button class="modal-close" id="share-close-btn" aria-label="Close">✕</button>
+      </div>
+      <div class="share-body">
+        <h3 class="share-section">👀 Anyone with the link can view</h3>
+        <div class="share-target">
+          <label class="share-target-label" for="share-target-mode">Open the link on</label>
+          <select id="share-target-mode">
+            <option value="tree">The whole tree</option>
+            <option value="person">A person</option>
+          </select>
+          <div id="share-person-row" class="share-person-row hidden">
+            <input type="text" id="share-person-input" list="share-person-list" placeholder="Type a name…" autocomplete="off" />
+            <datalist id="share-person-list"></datalist>
+            <div class="share-dir" role="radiogroup" aria-label="Direction">
+              <label><input type="radio" name="share-dir" value="up" checked /> ⬆ Up (ancestors)</label>
+              <label><input type="radio" name="share-dir" value="down" /> ⬇ Down (descendants)</label>
+            </div>
+            <div id="share-person-error" class="share-hint share-person-error hidden">Pick a name from the list.</div>
+          </div>
+        </div>
+        <div class="share-link-row">
+          <input type="text" id="share-link-input" readonly onclick="this.select()" />
+          <button type="button" id="share-copy-btn" class="btn btn-secondary">Copy</button>
+        </div>
+        <button type="button" id="share-native-btn" class="btn btn-primary share-native hidden">Send the link… (WhatsApp, email)</button>
+
+        <h3 class="share-section">✏️ People who can edit</h3>
+        <div id="share-editors"></div>
+        <div id="share-invite-row" class="share-invite hidden">
+          <div class="share-link-row">
+            <input type="email" id="share-invite-input" placeholder="their@gmail.com" autocomplete="email" />
+            <button type="button" id="share-invite-btn" class="btn btn-primary">Invite</button>
+          </div>
+          <div id="share-invite-error" class="error-msg hidden"></div>
+          <p class="share-hint">Google emails them a link. They open the tree and tap <strong>Sign in to edit</strong>, using that same email.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script src="onboarding.js"></script>
+  <script src="share.js"></script>
+</body>
+</html>

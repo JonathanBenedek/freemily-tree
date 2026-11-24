@@ -1,0 +1,4 @@
+id,firstName,lastName,parent1,parent2,spouse,picture,comments
+1,Dana,Cohen,2,3,,,Born 1990 — replace with yourself
+2,Ruth,Cohen,,,3,,Example: Dana's mother
+3,David,Cohen,,,2,,Example: Dana's father
