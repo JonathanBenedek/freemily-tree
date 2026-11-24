@@ -13,6 +13,34 @@ This is the core idea behind Freemily Tree, and it is what makes it different fr
 - **Google's sharing settings decide who can see or change your tree.** You choose who can view it (anyone with the link) and who can edit it (people you add as Editors), the same way you share any Google file.
 - **The website is replaceable.** If freemilytree.com ever goes offline, your data is still in your Google Drive, and anyone can host this code on their own domain and open the same sheets. See [Self-hosting](#self-hosting).
 
+## Table of contents
+
+- [Features](#features)
+- [Using freemilytree.com](#using-freemilytreecom)
+  - [Start a new tree](#start-a-new-tree)
+  - [Open a tree you already have](#open-a-tree-you-already-have)
+  - [The sheet format](#the-sheet-format)
+  - [Viewing and navigating](#viewing-and-navigating)
+  - [Editing and inviting editors](#editing-and-inviting-editors)
+  - [Sharing links](#sharing-links)
+  - [Several trees and devices](#several-trees-and-devices)
+  - [Privacy and permissions](#privacy-and-permissions)
+- [How it works](#how-it-works)
+- [Self-hosting](#self-hosting)
+  - [What you need](#what-you-need)
+  - [1. Get the code](#1-get-the-code)
+  - [2. Create a Google Cloud project](#2-create-a-google-cloud-project)
+  - [3. Set up the OAuth consent screen](#3-set-up-the-oauth-consent-screen)
+  - [4. Create an OAuth client ID](#4-create-an-oauth-client-id)
+  - [5. Create a browser API key](#5-create-a-browser-api-key)
+  - [6. Run it locally](#6-run-it-locally)
+  - [7. Deploy](#7-deploy)
+  - [Optional: other ways to edit](#optional-other-ways-to-edit)
+- [Project structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
+
 ## Features
 
 - Interactive family tree: pan, zoom, search, and focus on one person's ancestors or descendants
@@ -240,3 +268,5 @@ Released under the [MIT License](LICENSE).
 ## Author
 
 Created by [Jonathan Benedek](https://www.linkedin.com/in/jonathan-benedek-58a039123/).
+
+Special thanks to [Nadav Benedek](https://www.linkedin.com/in/nadavbenedek/).

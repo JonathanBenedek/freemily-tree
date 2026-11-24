@@ -583,6 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('guide-resume-btn').addEventListener('click', () => openGuide({ resume: true }));
   $('welcome-skip-btn').addEventListener('click', showSetupScreen);
   $('home-signin-btn').addEventListener('click', onSignInClick);
+  $('home-other-account').addEventListener('click', signInWithAnotherAccount);
   $('howto-btn').addEventListener('click', () => {
     clearGuide();
     openGuide({ returnTo: state.treeOpen ? 'tree' : 'welcome' });

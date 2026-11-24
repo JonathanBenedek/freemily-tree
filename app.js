@@ -347,7 +347,11 @@ function renderTreeMenu() {
       </div>`).join('')}
     <div class="tree-menu-sep"></div>
     <button type="button" class="tree-menu-item tree-menu-action" data-menu="new" role="menuitem"><span class="tree-menu-check">＋</span>Create a new tree</button>
-    <button type="button" class="tree-menu-item tree-menu-action" data-menu="open" role="menuitem"><span class="tree-menu-check">📂</span>Open another tree</button>`;
+    <button type="button" class="tree-menu-item tree-menu-action" data-menu="open" role="menuitem"><span class="tree-menu-check">📂</span>Open another tree</button>
+    ${state.googleAccessToken || state.rememberedEmail ? `
+      <div class="tree-menu-sep"></div>
+      <div class="tree-menu-account">${state.googleAccessToken && state.googleEmail ? `Signed in as ${esc(state.googleEmail)}` : `Last signed in as ${esc(state.rememberedEmail)}`}</div>
+      <button type="button" class="tree-menu-item tree-menu-action" data-menu="switch-account" role="menuitem"><span class="tree-menu-check">👤</span>Use another Google account</button>` : ''}`;
 }
 
 function toggleTreeMenu(force) {
@@ -404,6 +408,8 @@ function updateHomePanel() {
   const tagline  = $('home-tagline');
   const start    = $('guide-start-btn');
   $('home-signin-btn').classList.toggle('hidden', signedIn);
+  $('home-other-account').classList.toggle('hidden', signedIn || !state.rememberedEmail);
+  $('home-other-account').textContent = `Not ${rememberedName()}? Use another account`;
   $('home-signin-btn').innerHTML = state.rememberedEmail
     ? `Continue as ${escHtml(rememberedName())}<span class="welcome-btn-sub">Signed in before on this device</span>`
     : 'Sign in with Google<span class="welcome-btn-sub">See your family trees on any device</span>';
@@ -545,6 +551,7 @@ function initTreeSwitcher() {
     clearGuide();
     if (action.dataset.menu === 'new')  openGuide({ returnTo: 'tree', answers: { start: 'new' }, pos: 1 });
     if (action.dataset.menu === 'open') openGuide({ returnTo: 'tree', answers: { start: 'own' }, pos: 1 });
+    if (action.dataset.menu === 'switch-account') signInWithAnotherAccount();
   });
   document.addEventListener('click', () => toggleTreeMenu(false));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleTreeMenu(false); });
@@ -960,9 +967,9 @@ async function afterSignIn(token) {
   return found;
 }
 
-function requestGoogleToken() {
+function requestGoogleToken({ chooseAccount = false } = {}) {
   return new Promise((resolve, reject) => {
-    if (state.googleAccessToken) { resolve(state.googleAccessToken); return; }
+    if (state.googleAccessToken && !chooseAccount) { resolve(state.googleAccessToken); return; }
     if (!effectiveClientId()) {
       reject(new Error("Google sign-in isn't set up on this website yet. The site owner needs to add config.js (see the README)."));
       return;
@@ -970,8 +977,29 @@ function requestGoogleToken() {
     const client = getTokenClient();
     if (!client) { reject(new Error('Google sign-in is still loading. Try again in a moment.')); return; }
     pendingToken = { resolve, reject };
-    client.requestAccessToken({ prompt: needConsentScreen ? 'consent' : '' });
+    client.requestAccessToken({ prompt: needConsentScreen ? 'consent' : (chooseAccount ? 'select_account' : '') });
   });
+}
+
+// "Use another account": forget who signed in on this device and open Google's
+// account chooser, so a different (or new) Google account can sign in.
+// Must stay synchronous until requestAccessToken, which opens the popup.
+async function signInWithAnotherAccount() {
+  forgetAuth();
+  state.googleAccessToken = null;
+  state.editAccessSheetId = null;
+  state.googleEmail = '';
+  state.googleName = null;
+  googleTokenClient = null; // rebuilt without the remembered-account hint
+  updateSignInBtn();
+  try {
+    const token = await requestGoogleToken({ chooseAccount: true });
+    if (state.treeOpen && !state.importMode) await ensureEditAccess(token);
+    await afterSignIn(token);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+  updateSignInBtn();
 }
 
 // ── Edit access check ────────────────────────────────────────────────

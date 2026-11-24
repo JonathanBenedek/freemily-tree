@@ -109,13 +109,28 @@ body {
 .made-by { text-align: center; margin-top: 8px; font-size: 12px; color: var(--text3); }
 .made-by a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .made-by a:hover { text-decoration: underline; }
+.credit-links { display: flex; justify-content: center; gap: 14px; margin-top: 8px; }
+.credit-links a, .credit-thanks a {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text3); transition: color 0.15s, transform 0.1s;
+}
+.credit-links a:hover, .credit-thanks a:hover { color: var(--accent); }
+.credit-links a:active, .credit-thanks a:active { transform: scale(0.94); }
+.credit-thanks {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 8px; font-size: 12px; color: var(--text3);
+}
+.credit-thanks svg { width: 15px; height: 15px; }
 .made-by-badge {
   position: absolute; left: 12px; bottom: 12px; z-index: 5;
-  font-size: 11px; color: var(--text3); text-decoration: none;
-  background: rgba(255,255,255,0.75); border: 1px solid var(--border);
-  border-radius: 999px; padding: 4px 10px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text3);
+  background: rgba(255,255,255,0.8); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 6px 4px 10px;
 }
-.made-by-badge:hover { color: var(--accent); border-color: var(--accent); }
+.made-by-badge a { display: inline-flex; color: var(--text3); transition: color 0.15s; }
+.made-by-badge a:hover { color: var(--accent); }
+.made-by-badge svg { width: 14px; height: 14px; }
 
 .setup-guide-link {
   text-align: center;
@@ -200,6 +215,8 @@ body {
   cursor: default;
 }
 .home-settings-link { display: block; margin: 12px auto 0; }
+.home-other-account { display: block; margin: 6px auto 0; font-size: 13px; }
+.tree-menu-account { font-size: 12px; color: var(--text3); padding: 4px 10px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tree-menu-empty { font-size: 13px; color: var(--text3); padding: 4px 10px 8px; }
 
 /* ===== GUIDE SCREEN ===== */
@@ -1305,7 +1322,8 @@ body:not(.can-edit) .add-btn-group { display: none; }
   .welcome-card { padding: 32px 20px 20px; }
   .mode-bar { padding: 6px 12px; }
   .mode-hint { display: block; margin-left: 0; white-space: normal; }
-  .made-by-badge { bottom: max(12px, env(safe-area-inset-bottom)); font-size: 10px; padding: 3px 8px; }
+  .made-by-badge { bottom: max(12px, env(safe-area-inset-bottom)); font-size: 10px; gap: 6px; padding: 3px 5px 3px 8px; }
+  .made-by-badge svg { width: 13px; height: 13px; }
   #guide-screen { padding: 0; }
   .guide-card { height: 100%; max-width: none; border-radius: 0; border: none; box-shadow: none; }
   .guide-top { padding-top: max(14px, env(safe-area-inset-top)); }
