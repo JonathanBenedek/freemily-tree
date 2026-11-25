@@ -29,7 +29,8 @@ source .deploy.env
 : "${BUCKET:?Set BUCKET in .deploy.env}"
 : "${SITE_URL:?Set SITE_URL in .deploy.env}"
 
-FILES=(index.html config.js app.js onboarding.js share.js style.css manifest.json privacy.html terms.html)
+FILES=(index.html config.js app.js onboarding.js share.js style.css manifest.json privacy.html terms.html
+       robots.txt sitemap.xml favicon.ico favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-image.png)
 VERSIONED=(style.css config.js app.js onboarding.js share.js)
 
 for f in "${FILES[@]}"; do

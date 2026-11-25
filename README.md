@@ -218,12 +218,14 @@ Upload these files to the root of your site:
 
 ```
 index.html  config.js  app.js  onboarding.js  share.js  style.css
-manifest.json  privacy.html  terms.html
+manifest.json  privacy.html  terms.html  robots.txt  sitemap.xml
+favicon.ico  favicon-32.png  apple-touch-icon.png  icon-192.png  icon-512.png  og-image.png
 ```
 
 There is nothing to build. A few things to keep in mind:
 
 - **Caching:** if you use a CDN, either give the files short cache times or add a version to the script links (for example `app.js?v=2`) on every release. Otherwise visitors may get a new `index.html` with old scripts.
+- **Your domain in the page tags:** `index.html` (canonical link, link-preview tags and structured data), `privacy.html`, `terms.html`, `robots.txt` and `sitemap.xml` point to `https://freemilytree.com`. Replace it with your own address.
 - **Legal pages:** `privacy.html` and `terms.html` describe freemilytree.com. Update them with your own name and contact details. Google requires them for a published app.
 - **Credit:** the footer credits the original author. You are welcome to keep it.
 
@@ -256,6 +258,8 @@ Under **Settings > Advanced**, a user can use their own Google Cloud Client ID i
 | `deploy.sh` | Optional deploy script for AWS S3 and CloudFront |
 | `privacy.html`, `terms.html` | Privacy policy and terms of service |
 | `family-tree-template.csv` | Example sheet with the right columns |
+| `robots.txt`, `sitemap.xml` | For search engines |
+| `favicon.ico`, `*.png` | Browser and app icons, and the image shown when the link is shared |
 
 ## Contributing
 

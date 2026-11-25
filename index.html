@@ -3,19 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Family Tree</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Freemily Tree – Free family tree maker in your own Google Sheet</title>
+  <meta name="description" content="Build, view and share your family tree for free. Freemily Tree draws an interactive tree from a Google Sheet you own, so your family's data stays yours." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://freemilytree.com/" />
+  <meta name="author" content="Jonathan Benedek" />
+  <meta name="application-name" content="Freemily Tree" />
+
+  <!-- Link previews (WhatsApp, Facebook, LinkedIn, X) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Freemily Tree" />
+  <meta property="og:title" content="Freemily Tree – Your family tree, in your own Google Sheet" />
+  <meta property="og:description" content="A free, interactive family tree that lives in a Google Sheet you own. Share one link with the whole family, invite relatives to help edit." />
+  <meta property="og:url" content="https://freemilytree.com/" />
+  <meta property="og:image" content="https://freemilytree.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Freemily Tree – Your family tree, in your own Google Sheet" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Freemily Tree – Your family tree, in your own Google Sheet" />
+  <meta name="twitter:description" content="A free, interactive family tree that lives in a Google Sheet you own." />
+  <meta name="twitter:image" content="https://freemilytree.com/og-image.png" />
+
+  <!-- Icons -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#7b4f2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Family Tree" />
+  <meta name="apple-mobile-web-app-title" content="Freemily Tree" />
+
+  <!-- Structured data for search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Freemily Tree",
+    "url": "https://freemilytree.com/",
+    "description": "A free, interactive family tree maker that keeps your family's data in a Google Sheet you own.",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Any (web browser)",
+    "browserRequirements": "Requires JavaScript",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "image": "https://freemilytree.com/og-image.png",
+    "author": {
+      "@type": "Person",
+      "name": "Jonathan Benedek",
+      "url": "https://www.linkedin.com/in/jonathan-benedek-58a039123/"
+    },
+    "sameAs": ["https://github.com/JonathanBenedek/freemily-tree"]
+  }
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
   <!-- ===== GUIDE SCREEN (built by onboarding.js) ===== -->
-  <div id="guide-screen" class="screen">
+  <div id="guide-screen" class="screen" data-nosnippet>
     <div class="guide-card">
       <div class="guide-top">
         <button id="guide-close-btn" class="guide-close" aria-label="Close guide">✕</button>
@@ -31,10 +80,10 @@
   </div>
 
   <!-- ===== SETUP SCREEN ===== -->
-  <div id="setup-screen" class="screen">
+  <div id="setup-screen" class="screen" data-nosnippet>
     <div class="setup-card">
       <div class="setup-logo">🌳</div>
-      <h1>Family Tree</h1>
+      <h1>Freemily Tree</h1>
       <p class="setup-subtitle">Connect your Google Sheet to visualize and manage your family tree</p>
       <p class="setup-guide-link">New here or stuck? <a href="#" id="setup-open-guide-link">Open the step-by-step guide →</a></p>
 
@@ -121,7 +170,7 @@
       <div id="home-panel" class="home-panel hidden">
         <div class="welcome-card">
           <div class="setup-logo">🌳</div>
-          <h1>Family Tree</h1>
+          <h1>Freemily Tree</h1>
           <p class="welcome-tagline" id="home-tagline">See your whole family in one interactive tree — on your phone or computer. Free, and your data stays in your own Google Sheet.</p>
 
           <ul class="welcome-perks" id="home-perks">
@@ -179,7 +228,7 @@
   </div>
 
   <!-- ===== ADD PERSON MODAL ===== -->
-  <div id="add-modal" class="modal-backdrop hidden">
+  <div id="add-modal" class="modal-backdrop hidden" data-nosnippet>
     <div class="modal">
       <div class="modal-header">
         <h2 id="modal-title">Add Person</h2>
@@ -237,7 +286,7 @@
   </div>
 
   <!-- ===== EDIT PERSON MODAL ===== -->
-  <div id="edit-modal" class="modal-backdrop hidden">
+  <div id="edit-modal" class="modal-backdrop hidden" data-nosnippet>
     <div class="modal">
       <div class="modal-header">
         <h2>Edit Person</h2>
@@ -280,7 +329,7 @@
   </div>
 
   <!-- ===== PERSON DETAIL PANEL ===== -->
-  <div id="detail-panel" class="detail-panel hidden">
+  <div id="detail-panel" class="detail-panel hidden" data-nosnippet>
     <button id="detail-close" class="detail-close">✕</button>
     <div id="detail-avatar" class="detail-avatar"></div>
     <div id="detail-name" class="detail-name"></div>
@@ -289,7 +338,7 @@
   </div>
 
   <!-- ===== SETUP HELP MODAL ===== -->
-  <div id="help-modal" class="modal-backdrop hidden">
+  <div id="help-modal" class="modal-backdrop hidden" data-nosnippet>
     <div class="modal modal-wide">
       <div class="modal-header">
         <h2>Enable Editing — Apps Script Setup</h2>
@@ -379,7 +428,7 @@ function doGet(e) {
   </div>
 
   <!-- ===== SHARE MODAL (share.js) ===== -->
-  <div id="share-modal" class="modal-backdrop hidden">
+  <div id="share-modal" class="modal-backdrop hidden" data-nosnippet>
     <div class="modal share-modal" role="dialog" aria-labelledby="share-title">
       <div class="modal-header">
         <h2 id="share-title">Share</h2>
