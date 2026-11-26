@@ -6,7 +6,8 @@
 // the Drive API, which works with the built-in sign-in for sheets that were
 // created or picked with the app. Google emails each invited person.
 // Depends on app.js globals: $, state, showToast, canEdit, usingSharedSignIn,
-// requestGoogleToken, ensureEditAccess, updateSignInBtn, treeTitle, escHtml.
+// requestGoogleToken, ensureEditAccess, updateSignInBtn, treeTitle, escHtml,
+// requestMode; and requests.js: requestsAvailable.
 // ===================================================================
 
 function treeLink(id = state.sheetId) {
@@ -136,6 +137,17 @@ async function renderEditorsSection() {
   const box = $('share-editors');
   const inviteRow = $('share-invite-row');
 
+  renderRequestsSection();
+
+  // Signed in, can only view: they can suggest changes (requests.js)
+  if (requestMode()) {
+    inviteRow.classList.add('hidden');
+    box.innerHTML = requestsAvailable()
+      ? `<p class="share-hint">You can view this tree. To suggest a change, tap <strong>+</strong> or <strong>✎</strong> on anyone in the tree. The tree's admin will review it.</p>`
+      : `<p class="share-hint">You can view this tree. To make changes, ask the person who shared it to add you as an editor.</p>`;
+    return;
+  }
+
   // Not signed in / can't edit yet
   if (!canEdit()) {
     inviteRow.classList.add('hidden');
@@ -172,6 +184,69 @@ async function renderEditorsSection() {
       <p class="share-hint share-manage">To remove someone: ${manageInSheetsLink()}</p>`;
   } catch (err) {
     box.innerHTML = `<p class="share-hint">Couldn't load the list of editors (${escHtml(err.message)}). You can still invite people below, or ${manageInSheetsLink()}.</p>`;
+  }
+}
+
+// ── Change requests: where suggestions from viewers are emailed ───────
+// Stored on the sheet's Drive file as properties, so every visitor's app
+// can read them: ftRequestsTo (email; empty = the owner) and ftRequests=off.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function renderRequestsSection() {
+  const box = $('share-requests');
+  box.innerHTML = '';
+  if (!canEdit() || !usingSharedSignIn() || !state.googleAccessToken) return;
+  const sheetId = state.sheetId;
+  let meta;
+  try {
+    meta = await driveFetch(`files/${encodeURIComponent(sheetId)}?supportsAllDrives=true&fields=owners(displayName,emailAddress),properties`);
+  } catch { return; } // the rest of the dialog still works
+  if (sheetId !== state.sheetId) return;
+  const props = meta.properties || {};
+  const ownerEmail = meta.owners?.[0]?.emailAddress || '';
+  const to = props.ftRequestsTo || ownerEmail;
+  const off = props.ftRequests === 'off';
+  box.innerHTML = `
+    <h3 class="share-section">📨 Change requests</h3>
+    <p class="share-hint" style="margin-top:0">People who can only view the tree can suggest changes with <strong>+</strong> and <strong>✎</strong>. The app prepares an email for them to send to:</p>
+    <div class="share-link-row" style="margin-top:8px">
+      <input type="email" id="share-requests-to" value="${escHtml(to)}" placeholder="admin@gmail.com" autocomplete="email" />
+      <button type="button" id="share-requests-save" class="btn btn-secondary">Save</button>
+    </div>
+    <label class="share-check"><input type="checkbox" id="share-requests-off" ${off ? 'checked' : ''} /> Don't take change requests</label>
+    <div id="share-requests-error" class="error-msg hidden"></div>
+    <p class="share-hint">The email shows this address and the sender's email. Each request has a link: open it, check the change, and tap <strong>Apply</strong>.</p>`;
+  box.dataset.owner = ownerEmail;
+}
+
+async function saveRequestSettings() {
+  const input = $('share-requests-to');
+  const errEl = $('share-requests-error');
+  const btn   = $('share-requests-save');
+  const email = input.value.trim();
+  const off   = $('share-requests-off').checked;
+  errEl.classList.add('hidden');
+  if (email && !EMAIL_RE.test(email)) {
+    errEl.textContent = 'Please type a full email address, like name@gmail.com.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const owner = $('share-requests').dataset.owner || '';
+  btn.disabled = true;
+  try {
+    await driveFetch(`files/${encodeURIComponent(state.sheetId)}?supportsAllDrives=true&fields=id`, {
+      method: 'PATCH',
+      body: JSON.stringify({ properties: {
+        ftRequestsTo: email && email.toLowerCase() !== owner.toLowerCase() ? email : null, // null removes it
+        ftRequests:   off ? 'off' : null,
+      } }),
+    });
+    showToast(off ? 'Change requests are off.' : `Change requests will be emailed to ${email || owner}.`, 'success');
+  } catch (err) {
+    errEl.textContent = `Couldn't save: ${err.message}`;
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -232,6 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('share-invite-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') onInviteClick(); });
   $('share-editors').addEventListener('click', (e) => {
     if (e.target.closest('#share-signin-btn')) onShareSignIn();
+  });
+  $('share-requests').addEventListener('click', (e) => {
+    if (e.target.closest('#share-requests-save')) saveRequestSettings();
+  });
+  $('share-requests').addEventListener('change', (e) => {
+    if (e.target.id === 'share-requests-off') saveRequestSettings();
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeShareModal(); });
 });

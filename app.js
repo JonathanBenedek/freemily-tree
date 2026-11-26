@@ -19,6 +19,8 @@ const state = {
   treeOpen: false,         // a tree is shown (vs. the home panel)
   discovering: false,      // looking up the signed-in person's trees in Google Drive        // { given, family, full } from Google, used to name a new tree
   editAccessSheetId: null, // sheet the signed-in person is confirmed to be able to edit
+  requestOnlySheetId: null, // sheet the signed-in person can view but not edit (may suggest changes)
+  requestTo: null,          // { email, name, off } where change requests for that sheet go
   people: [],
   layout: null,
   viewMode: 'full',
@@ -158,6 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('export-btn').addEventListener('click', onExportClick);
   $('import-btn').addEventListener('click', () => $('import-file-input').click());
   $('import-file-input').addEventListener('change', onImportFileChange);
+
+  // A change request link opened while this tree is already on screen
+  window.addEventListener('hashchange', () => { if (state.treeOpen && !state.importMode) openReviewFromHash(); });
 
   // Search
   initSearch();
@@ -689,6 +694,7 @@ function restorePersonFocus(personId, mode) {
 // Link parameters:  &person=<id or name>  &view=up|down   (view defaults to up)
 // Older links still work: &node=<id or name>  &mode=up|down  (no mode = whole tree, centred on them)
 function applyUrlParams() {
+  openReviewFromHash(); // #request=… from a change request email (requests.js)
   const params = new URLSearchParams(window.location.search);
   const personParam = params.get('person') ?? params.get('node');
   const viewParam   = (params.get('view') ?? params.get('mode') ?? '').toLowerCase();
@@ -826,7 +832,7 @@ function useBuiltInSignIn() {
   clientIdInput.value     = '';
   try { localStorage.setItem('ftGoogleClientId', ''); } catch {}
   state.googleAccessToken = null;
-  state.editAccessSheetId = null;
+  clearAccessState();
   googleTokenClient       = null;
 }
 function effectiveClientId()  { return state.googleClientId || SHARED_GOOGLE.clientId; }
@@ -841,8 +847,24 @@ function canEdit() {
   return !!state.googleAccessToken && state.editAccessSheetId === state.sheetId;
 }
 
+// Signed in, can view this tree but not edit it: + and ✎ prepare a change
+// request for the tree's admin instead of saving (see CHANGE REQUESTS).
+function requestMode() {
+  return !canEdit() && !!state.googleAccessToken && usingSharedSignIn()
+    && !!state.sheetId && state.requestOnlySheetId === state.sheetId;
+}
+
 function updateEditMode() {
   document.body.classList.toggle('can-edit', canEdit());
+  document.body.classList.toggle('request-mode', requestMode());
+  if (typeof refreshReviewModal === 'function') refreshReviewModal();
+}
+
+// Forget which sheets this person may edit / suggest changes to (sign-out, other account)
+function clearAccessState() {
+  state.editAccessSheetId  = null;
+  state.requestOnlySheetId = null;
+  state.requestTo          = null;
 }
 
 function finishToken(token, err) {
@@ -924,7 +946,9 @@ function updateSignInBtn() {
   if (!state.treeOpen) {
     btn.textContent = state.googleAccessToken ? '✓ Signed in' : (again || 'Sign in');
   } else {
-    btn.textContent = canEdit() ? '✓ Editing on' : (state.googleAccessToken ? 'Signed in · view only' : (again ? `✏️ ${again}` : '✏️ Sign in to edit'));
+    btn.textContent = canEdit() ? '✓ Editing on'
+      : requestMode() ? 'Signed in · can suggest changes'
+      : (state.googleAccessToken ? 'Signed in · view only' : (again ? `✏️ ${again}` : '✏️ Sign in to edit'));
   }
   if (typeof updateHomePanel === 'function') updateHomePanel();
 }
@@ -936,7 +960,7 @@ async function onSignInClick() {
     // drop the per-sheet permissions from the Google picker.
     forgetAuth();
     state.googleAccessToken = null;
-    state.editAccessSheetId = null;
+    clearAccessState();
     state.googleEmail = '';
     state.googleName = null;
     googleTokenClient = null;
@@ -987,7 +1011,7 @@ function requestGoogleToken({ chooseAccount = false } = {}) {
 async function signInWithAnotherAccount() {
   forgetAuth();
   state.googleAccessToken = null;
-  state.editAccessSheetId = null;
+  clearAccessState();
   state.googleEmail = '';
   state.googleName = null;
   googleTokenClient = null; // rebuilt without the remembered-account hint
@@ -1009,13 +1033,14 @@ async function signInWithAnotherAccount() {
 // "not found" we open the picker showing just this sheet.
 async function driveCanEdit(token, fileId) {
   const resp = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=name,capabilities(canEdit)&supportsAllDrives=true`,
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=name,capabilities(canEdit),owners(displayName,emailAddress),properties&supportsAllDrives=true`,
     { headers: { Authorization: `Bearer ${token}` } });
   if (resp.status === 401) { state.googleAccessToken = null; throw new Error('Your Google session expired. Tap Sign in to edit again.'); }
   if (resp.status === 404 || resp.status === 403) return { found: false };
   if (!resp.ok) throw new Error(`Google Drive error ${resp.status}`);
   const meta = await resp.json();
-  return { found: true, canEdit: !!meta.capabilities?.canEdit, name: meta.name };
+  return { found: true, canEdit: !!meta.capabilities?.canEdit, name: meta.name,
+           owner: meta.owners?.[0] || null, properties: meta.properties || {} };
 }
 
 async function ensureEditAccess(token, { interactive = true } = {}) {
@@ -1027,7 +1052,7 @@ async function ensureEditAccess(token, { interactive = true } = {}) {
   let res = await driveCanEdit(token, state.sheetId);
   if (!res.found && !interactive) return; // never open the picker on its own
   if (!res.found) {
-    showToast('Google will ask you to confirm your family tree sheet. Tap it, then tap Select.', '');
+    showToast('Google will ask you to confirm this family tree. Tap it, then tap Select.', '');
     const picked = await pickSheetWithGoogle(token, state.sheetId);
     if (!picked) throw new Error('Editing stays off until you select your sheet.');
     res = await driveCanEdit(token, state.sheetId);
@@ -1039,10 +1064,18 @@ async function ensureEditAccess(token, { interactive = true } = {}) {
     addShortcutToTreesFolder(token, state.sheetId, res.name).catch(() => {});
   }
   if (!res.canEdit) {
+    // Can view, can't edit: + and ✎ send change requests to the tree's admin
+    state.requestOnlySheetId = state.sheetId;
+    state.requestTo = requestTargetFrom(res);
     if (!interactive) return;
-    throw new Error(`You can view this tree, but ${state.googleEmail || 'your account'} can't edit it. Ask the owner to share the sheet with you as an Editor.`);
+    const to = state.requestTo;
+    showToast(to.email && !to.off
+      ? `You can't edit this tree yourself, but you can suggest changes with + and ✎. ${to.name || to.email} will review them.`
+      : `You can view this tree, but ${state.googleEmail || 'your account'} can't edit it. Ask the owner to share the sheet with you as an Editor.`, '');
+    return;
   }
   state.editAccessSheetId = state.sheetId;
+  state.requestOnlySheetId = null;
   if (interactive) showToast('Editing is on. Tap + or ✎ on anyone in the tree.', 'success');
 }
 
@@ -2159,8 +2192,8 @@ function createPersonNode(person, x, y) {
   g.appendChild(makeNavBtn(NW - 13, 13, '▲', () => focusAncestors(person, { preserveView: true }), nav.up, upTip));
   g.appendChild(makeNavBtn(NW - 13, NH - 13, '▼', () => focusDescendants(person, { preserveView: true }), nav.down, downTip));
 
-  // + Add — bottom-left corner (always shown when editing configured)
-  { // shown only in edit mode (body.can-edit), see updateEditMode()
+  // + Add — bottom-left corner. Shown to everyone: see onEditAction()
+  {
     const ag = svgEl('g');
     ag.setAttribute('transform', `translate(13,${NH - 13})`);
     ag.setAttribute('class', 'add-btn-group');
@@ -2172,12 +2205,12 @@ function createPersonNode(person, x, y) {
     at.setAttribute('class', 'add-btn-label');
     at.textContent = '+';
     ag.appendChild(at);
-    ag.addEventListener('click', e => { e.stopPropagation(); showContextMenu(e, person); });
+    ag.addEventListener('click', e => { e.stopPropagation(); onEditAction({ type: 'add', person, x: e.clientX, y: e.clientY }); });
     g.appendChild(ag);
   }
 
-  // ✎ Edit — top-left corner (only when editing is configured)
-  { // shown only in edit mode (body.can-edit), see updateEditMode()
+  // ✎ Edit — top-left corner. Shown to everyone: see onEditAction()
+  {
     const eg = svgEl('g');
     eg.setAttribute('transform', `translate(13,13)`);
     eg.setAttribute('class', 'edit-btn-group');
@@ -2189,7 +2222,7 @@ function createPersonNode(person, x, y) {
     et.setAttribute('class', 'edit-btn-label');
     et.textContent = '✎';
     eg.appendChild(et);
-    eg.addEventListener('click', e => { e.stopPropagation(); openEditModal(person); });
+    eg.addEventListener('click', e => { e.stopPropagation(); onEditAction({ type: 'edit', person }); });
     g.appendChild(eg);
   }
 
@@ -2226,7 +2259,7 @@ function showDetail(person) {
 // ===================================================================
 function showContextMenu(e, person) {
   ctxTarget = person;
-  e.preventDefault();
+  e.preventDefault?.();
 
   const hasSpouse    = !!person.spouse;
   const parentCount  = (person.parent1 ? 1 : 0) + (person.parent2 ? 1 : 0);
@@ -2244,10 +2277,81 @@ function hideContextMenu() {
 }
 
 // ===================================================================
+// + / ✎ FOR EVERYONE
+// -------------------------------------------------------------------
+// Editors save straight to the sheet. Visitors who aren't signed in are
+// asked to sign in first. Signed-in people who can only view the tree fill
+// in the same forms, and the app prepares a change request for the admin.
+// ===================================================================
+let pendingEditAction = null; // waits behind the "please sign in" message
+
+function runEditAction(action) {
+  if (!state.people.some(p => String(p.id) === String(action.person.id))) return;
+  if (requestMode() && !requestsAvailable()) {
+    showToast(state.requestTo?.off
+      ? "This tree's admin isn't taking change requests right now. Ask the person who shared the link."
+      : "This tree can't take change requests. Ask the person who shared the link to add you as an editor.", 'error');
+    return;
+  }
+  if (action.type === 'edit') openEditModal(action.person);
+  else showContextMenu({ clientX: action.x, clientY: action.y }, action.person);
+}
+
+async function onEditAction(action) {
+  if (canEdit() || requestMode() || !usesSheetsAPI()) { runEditAction(action); return; }
+  if (!state.googleAccessToken) { openSigninGate(action); return; }
+  // Signed in, but not yet checked for this tree
+  try {
+    await ensureEditAccess(state.googleAccessToken);
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+  updateSignInBtn();
+  if (canEdit() || requestMode()) runEditAction(action);
+}
+
+function openSigninGate(action) {
+  pendingEditAction = action;
+  $('signin-gate-modal').classList.remove('hidden');
+}
+
+function closeSigninGate() {
+  pendingEditAction = null;
+  $('signin-gate-modal').classList.add('hidden');
+}
+
+// Must stay synchronous until requestGoogleToken, which opens Google's popup
+async function onSigninGateContinue() {
+  const action = pendingEditAction;
+  closeSigninGate();
+  try {
+    const token = await requestGoogleToken();
+    if (state.treeOpen && !state.importMode) await ensureEditAccess(token);
+    afterSignIn(token).catch(() => {});
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+  updateSignInBtn();
+  if (action && (canEdit() || requestMode())) runEditAction(action);
+}
+
+// Request-mode extras in the add / edit forms
+function prepareRequestForm(prefix) {
+  const on = requestMode();
+  const to = state.requestTo || {};
+  $(`${prefix}-request-notice`).innerHTML = on
+    ? `You can't change this tree yourself. We'll prepare an email to the tree's admin, <strong>${escHtml(to.name || to.email || '')}</strong>, who can add your change.`
+    : '';
+  $(`${prefix}-note`).value = '';
+  hideError($(`${prefix}-error`));
+  return on;
+}
+
+// ===================================================================
 // ADD MODAL
 // ===================================================================
 function openAddModal(relation, relatedPerson) {
-  if (!canEdit()) {
+  if (!canEdit() && !requestMode()) {
     showToast('Tap "Sign in to edit" at the top first.', 'error');
     return;
   }
@@ -2258,7 +2362,8 @@ function openAddModal(relation, relatedPerson) {
   formLastName.value   = '';
   formPicture.value    = '';
   formComments.value   = '';
-  hideError(formError);
+  const asking = prepareRequestForm('form');
+  $('form-submit-btn').textContent = asking ? 'Send request' : 'Add Person';
 
   const relName = relatedPerson ? `${relatedPerson.firstName || ''} ${relatedPerson.lastName || ''}`.trim() : '';
   const label = relation === 'child'  ? `Add child of ${relName}`
@@ -2298,24 +2403,56 @@ async function onAddFormSubmit(e) {
   e.preventDefault();
   hideError(formError);
 
-  const firstName = formFirstName.value.trim();
-  const lastName  = formLastName.value.trim();
-  const picture   = formPicture.value.trim();
-  const comments  = formComments.value.trim();
+  const fields = {
+    firstName: formFirstName.value.trim(),
+    lastName:  formLastName.value.trim(),
+    picture:   formPicture.value.trim(),
+    comments:  formComments.value.trim(),
+  };
   const relation  = formRelation.value;
   const relatedId = formRelatedTo.value;
+  const parent2Id = $('form-parent2-id').value;
 
-  if (!firstName) {
+  if (!fields.firstName) {
     showError(formError, 'First name is required.');
     return;
   }
 
+  if (requestMode()) {
+    const req = buildRequest({ kind: 'add', relation, relatedTo: relatedId, parent2: parent2Id, newPerson: fields, note: $('form-note').value });
+    if (typeof req === 'string') { showError(formError, req); return; }
+    hideAddModal();
+    showSendScreen(req);
+    return;
+  }
+
+  const btn = $('form-submit-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const { newId, relatedPerson } = await addPersonWithRelations(fields, relation, relatedId, parent2Id);
+    hideAddModal();
+    rerenderCurrentView(relatedPerson?.id ?? newId);
+    if (!state.importMode) {
+      showToast(`${fields.firstName} added!`, 'success');
+      syncFromSheetQuietly(relatedPerson?.id ?? newId, 2000);
+    }
+  } catch (err) {
+    showError(formError, err.message || 'Failed to save. Please check your Apps Script URL.');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Add Person';
+  }
+}
+
+// Saves a new person and links them to relatedId as a child / spouse / parent.
+// Used by the add form and by applying a change request.
+async function addPersonWithRelations({ firstName, lastName, picture, comments }, relation, relatedId, parent2Id = '') {
   const newId = generateId(state.people);
-  const relatedPerson = state.people.find(p => p.id === relatedId);
+  const relatedPerson = state.people.find(p => String(p.id) === String(relatedId));
 
   let parent1 = '', parent2 = '', spouse = '';
-  const parent2Id = $('form-parent2-id').value;
-
   if (relation === 'child') {
     parent1 = relatedId;
     parent2 = parent2Id || (relatedPerson?.spouse ?? '');
@@ -2326,57 +2463,40 @@ async function onAddFormSubmit(e) {
 
   const newPerson = { id: newId, firstName, lastName, parent1, parent2, spouse, picture, comments };
 
-  const btn = $('form-submit-btn');
-  btn.disabled    = true;
-  btn.textContent = 'Saving…';
+  await appendToSheet(newPerson);
 
-  try {
-    await appendToSheet(newPerson);
+  state.people.push(newPerson);
 
-    state.people.push(newPerson);
-
-    if (relation === 'spouse' && relatedPerson) {
-      relatedPerson.spouse = newId;
-      await appendSpouseUpdate(relatedPerson, newId);
-    }
-
-    // If a second parent was chosen, link the two parents as spouses of each other
-    if (relation === 'child' && parent2Id) {
-      const p1 = relatedPerson;
-      const p2 = state.people.find(p => p.id === parent2Id);
-      if (p1 && p2 && p1.spouse !== p2.id) {
-        await appendSpouseUpdate(p1, p2.id);
-        await appendSpouseUpdate(p2, p1.id);
-      }
-    }
-
-    // Adding a parent: fill child's empty parent slot; link with existing parent as spouse
-    if (relation === 'parent' && relatedPerson) {
-      const slot = !relatedPerson.parent1 ? 'parent1' : 'parent2';
-      relatedPerson[slot] = newId;
-      await appendParentUpdate(relatedPerson.id, slot, newId);
-      // If filling parent2 and parent1 exists, link as spouses
-      if (slot === 'parent2' && relatedPerson.parent1) {
-        const existingParent = state.people.find(p => p.id === relatedPerson.parent1);
-        if (existingParent && existingParent.spouse !== newId) {
-          await appendSpouseUpdate(existingParent, newId);
-          await appendSpouseUpdate(newPerson, existingParent.id);
-        }
-      }
-    }
-
-    hideAddModal();
-    rerenderCurrentView(relatedPerson?.id ?? newId);
-    if (!state.importMode) {
-      showToast(`${firstName} added!`, 'success');
-      syncFromSheetQuietly(relatedPerson?.id ?? newId, 2000);
-    }
-  } catch (err) {
-    showError(formError, err.message || 'Failed to save. Please check your Apps Script URL.');
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = 'Add Person';
+  if (relation === 'spouse' && relatedPerson) {
+    relatedPerson.spouse = newId;
+    await appendSpouseUpdate(relatedPerson, newId);
   }
+
+  // If a second parent was chosen, link the two parents as spouses of each other
+  if (relation === 'child' && parent2Id) {
+    const p1 = relatedPerson;
+    const p2 = state.people.find(p => String(p.id) === String(parent2Id));
+    if (p1 && p2 && p1.spouse !== p2.id) {
+      await appendSpouseUpdate(p1, p2.id);
+      await appendSpouseUpdate(p2, p1.id);
+    }
+  }
+
+  // Adding a parent: fill child's empty parent slot; link with existing parent as spouse
+  if (relation === 'parent' && relatedPerson) {
+    const slot = !relatedPerson.parent1 ? 'parent1' : 'parent2';
+    relatedPerson[slot] = newId;
+    await appendParentUpdate(relatedPerson.id, slot, newId);
+    // If filling parent2 and parent1 exists, link as spouses
+    if (slot === 'parent2' && relatedPerson.parent1) {
+      const existingParent = state.people.find(p => p.id === relatedPerson.parent1);
+      if (existingParent && existingParent.spouse !== newId) {
+        await appendSpouseUpdate(existingParent, newId);
+        await appendSpouseUpdate(newPerson, existingParent.id);
+      }
+    }
+  }
+  return { newId, relatedPerson };
 }
 
 async function appendSpouseUpdate(person, newSpouseId) {
@@ -2449,7 +2569,11 @@ function openEditModal(person) {
   $('edit-form-last-name').value  = person.lastName  || '';
   $('edit-form-picture').value    = person.picture   || '';
   $('edit-form-comments').value   = person.comments  || '';
-  hideError($('edit-form-error'));
+  const asking = prepareRequestForm('edit-form');
+  $('edit-modal-title').textContent        = asking ? 'Suggest a change' : 'Edit Person';
+  $('edit-form-submit-btn').textContent    = asking ? 'Send request' : 'Save';
+  $('edit-form-delete-btn').textContent    = asking ? '🗑 Ask to remove' : '🗑';
+  $('edit-form-delete-btn').title          = asking ? 'Ask the admin to remove this person' : 'Remove person';
   $('edit-modal').classList.remove('hidden');
 }
 
@@ -2460,12 +2584,28 @@ function closeEditModal() {
 async function onEditFormSubmit(e) {
   e.preventDefault();
   const id        = $('edit-form-id').value;
-  const firstName = $('edit-form-first-name').value.trim();
-  const lastName  = $('edit-form-last-name').value.trim();
-  const picture   = $('edit-form-picture').value.trim();
-  const comments  = $('edit-form-comments').value.trim();
+  const fields = {
+    firstName: $('edit-form-first-name').value.trim(),
+    lastName:  $('edit-form-last-name').value.trim(),
+    picture:   $('edit-form-picture').value.trim(),
+    comments:  $('edit-form-comments').value.trim(),
+  };
   const errEl     = $('edit-form-error');
-  if (!firstName) { showError(errEl, 'First name is required.'); return; }
+  if (!fields.firstName) { showError(errEl, 'First name is required.'); return; }
+
+  if (requestMode()) {
+    const person = state.people.find(p => String(p.id) === String(id));
+    const changes = {};
+    for (const f of REQUEST_FIELDS) {
+      if ((person?.[f] || '') !== fields[f]) changes[f] = { old: person?.[f] || '', new: fields[f] };
+    }
+    if (!Object.keys(changes).length) { showError(errEl, "You haven't changed anything yet."); return; }
+    const req = buildRequest({ kind: 'edit', personId: id, changes, note: $('edit-form-note').value });
+    if (typeof req === 'string') { showError(errEl, req); return; }
+    closeEditModal();
+    showSendScreen(req);
+    return;
+  }
 
   const btn = $('edit-form-submit-btn');
   btn.disabled = true;
@@ -2473,13 +2613,7 @@ async function onEditFormSubmit(e) {
   hideError(errEl);
 
   try {
-    if (!state.importMode) {
-      if (usesSheetsAPI())          await updatePersonViaAPI(id, firstName, lastName, picture, comments);
-      else if (state.appsScriptUrl) await updatePersonViaScript(id, firstName, lastName, picture, comments);
-    }
-    // Show the change right away, in the same view and at the same spot
-    const person = state.people.find(p => String(p.id) === String(id));
-    if (person) { person.firstName = firstName; person.lastName = lastName; person.picture = picture; person.comments = comments; }
+    await savePersonFields(id, fields);
     closeEditModal();
     rerenderCurrentView(id);
     if (!state.importMode) {
@@ -2494,31 +2628,41 @@ async function onEditFormSubmit(e) {
   }
 }
 
+// Writes name / photo / comments to the sheet and shows them right away.
+// Used by the edit form and by applying a change request.
+async function savePersonFields(id, { firstName, lastName, picture, comments }) {
+  if (!state.importMode) {
+    if (usesSheetsAPI())          await updatePersonViaAPI(id, firstName, lastName, picture, comments);
+    else if (state.appsScriptUrl) await updatePersonViaScript(id, firstName, lastName, picture, comments);
+  }
+  const person = state.people.find(p => String(p.id) === String(id));
+  if (person) { person.firstName = firstName; person.lastName = lastName; person.picture = picture; person.comments = comments; }
+}
+
 async function onEditFormDelete() {
   const id   = $('edit-form-id').value;
   const person = state.people.find(p => String(p.id) === String(id));
   const name = person ? `${person.firstName} ${person.lastName || ''}`.trim() : id;
+  const errEl = $('edit-form-error');
+
+  if (requestMode()) {
+    const req = buildRequest({ kind: 'remove', personId: id, note: $('edit-form-note').value });
+    if (typeof req === 'string') { showError(errEl, req); return; }
+    closeEditModal();
+    showSendScreen(req);
+    return;
+  }
+
   if (!confirm(`Remove "${name}" from the family tree? This cannot be undone.`)) return;
 
-  const errEl = $('edit-form-error');
   const btn   = $('edit-form-delete-btn');
   btn.disabled = true;
   btn.textContent = 'Removing…';
   hideError(errEl);
 
   try {
-    if (!state.importMode) {
-      if (usesSheetsAPI())          await deletePersonViaAPI(id);
-      else if (state.appsScriptUrl) await deletePersonViaScript(id);
-    }
-    // Keep a close relative (or whoever is nearest the middle) fixed on screen
-    const anchor = [person?.spouse, person?.parent1, person?.parent2,
-      ...state.people.filter(p => String(p.parent1) === String(id) || String(p.parent2) === String(id)).map(p => p.id)]
-      .find(a => a && state.layout?.positions?.[a]) || centerPersonId(id);
-    state.people = state.people.filter(p => String(p.id) !== String(id));
-    if (String(state.focusId) === String(id)) { state.viewMode = 'full'; state.focusId = null; state.focusedName = null; updateModeBar(); }
+    const anchor = await removePerson(id);
     closeEditModal();
-    detailPanel.classList.add('hidden');
     rerenderCurrentView(anchor);
     if (!state.importMode) {
       showToast('Removed!', 'success');
@@ -2526,9 +2670,27 @@ async function onEditFormDelete() {
     }
   } catch (err) {
     showError(errEl, err.message || 'Failed to remove.');
+  } finally {
     btn.disabled = false;
-    btn.textContent = '🗑 Remove';
+    btn.textContent = '🗑';
   }
+}
+
+// Removes a person from the sheet and the tree. Returns a person to keep on
+// screen (a close relative, or whoever is nearest the middle).
+async function removePerson(id) {
+  const person = state.people.find(p => String(p.id) === String(id));
+  if (!state.importMode) {
+    if (usesSheetsAPI())          await deletePersonViaAPI(id);
+    else if (state.appsScriptUrl) await deletePersonViaScript(id);
+  }
+  const anchor = [person?.spouse, person?.parent1, person?.parent2,
+    ...state.people.filter(p => String(p.parent1) === String(id) || String(p.parent2) === String(id)).map(p => p.id)]
+    .find(a => a && state.layout?.positions?.[a]) || centerPersonId(id);
+  state.people = state.people.filter(p => String(p.id) !== String(id));
+  if (String(state.focusId) === String(id)) { state.viewMode = 'full'; state.focusId = null; state.focusedName = null; updateModeBar(); }
+  detailPanel.classList.add('hidden');
+  return anchor;
 }
 
 // ===================================================================

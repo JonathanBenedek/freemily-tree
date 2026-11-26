@@ -555,10 +555,8 @@ small a:hover { text-decoration: underline; }
 .btn-danger:hover { background: #c53030; }
 .btn-icon { padding: 6px 10px; font-size: 15px; flex-shrink: 0; }
 
-/* Edit button on node */
-/* + and ✎ on each person appear only when editing is on (see updateEditMode in app.js) */
-body:not(.can-edit) .edit-btn-group,
-body:not(.can-edit) .add-btn-group { display: none; }
+/* + and ✎ on each person are shown to everyone. Visitors who can't edit are
+   asked to sign in, or can suggest a change (see onEditAction in app.js). */
 
 .edit-btn-group { cursor: pointer; }
 .edit-btn-circle { fill: #c8b8a2; transition: fill 0.15s; }
@@ -1353,3 +1351,52 @@ body:not(.can-edit) .add-btn-group { display: none; }
   /* Modals full-width */
   .modal { width: 95vw; margin: 0 auto; }
 }
+
+/* ===== CHANGE REQUESTS (requests.js) ===== */
+.request-only { display: none; }
+body.request-mode .request-only { display: block; }
+.request-notice {
+  font-size: 13px; line-height: 1.5; color: var(--text2);
+  background: var(--accent-light); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 16px;
+}
+.request-notice strong { color: var(--text); }
+.request-body { padding: 0 24px 24px; font-size: 14px; line-height: 1.55; color: var(--text2); }
+.request-body > p { margin-bottom: 8px; }
+.request-to strong { color: var(--text); word-break: break-all; }
+.request-summary {
+  font-family: inherit; white-space: pre-wrap; word-break: break-word;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 14px; margin: 8px 0; color: var(--text); font-size: 13px;
+}
+.request-send-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.request-send-actions .btn { flex: 1 1 140px; width: auto; margin-top: 0; text-align: center; text-decoration: none; padding: 10px 14px; font-size: 14px; }
+.request-done {
+  margin-top: 14px; padding: 10px 14px; border-radius: 10px;
+  background: #eef7ef; border: 1px solid #c6e3ca; color: var(--green);
+}
+.review-from { font-size: 13px; color: var(--text3); }
+.review-from strong { color: var(--text); }
+.review-from span { margin-left: 4px; }
+.review-hint { display: block; margin-left: 0 !important; font-size: 12px; }
+.review-intro { font-size: 15px; color: var(--text); margin: 12px 0 8px !important; }
+.review-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 4px; }
+.review-table th, .review-table td { text-align: left; vertical-align: top; padding: 8px 6px; border-top: 1px solid var(--border); word-break: break-word; }
+.review-table th { color: var(--text3); font-weight: 600; width: 26%; word-break: normal; overflow-wrap: normal; }
+.review-table td { color: var(--text); }
+.review-head th { border-top: none; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+.review-empty { color: var(--text3); font-style: italic; }
+.review-flag { margin-top: 4px; font-size: 12px; color: #a15c00; font-weight: 400; }
+.review-flag.ok { color: var(--green); }
+.review-note {
+  margin: 10px 0; padding: 8px 12px; border-left: 3px solid var(--couple-line);
+  background: var(--surface2); color: var(--text); white-space: pre-wrap; word-break: break-word;
+}
+.review-blocker { margin-top: 10px; color: var(--red); }
+@media (max-width: 480px) {
+  .request-body { padding-left: 16px; padding-right: 16px; }
+  .review-table th { width: auto; }
+}
+.share-check { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text2); cursor: pointer; }
+.share-check input { width: auto; margin: 0; }
+#share-requests .share-section { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border); }

@@ -22,6 +22,7 @@ This is the core idea behind Freemily Tree, and it is what makes it different fr
   - [The sheet format](#the-sheet-format)
   - [Viewing and navigating](#viewing-and-navigating)
   - [Editing and inviting editors](#editing-and-inviting-editors)
+  - [Suggesting changes](#suggesting-changes)
   - [Sharing links](#sharing-links)
   - [Several trees and devices](#several-trees-and-devices)
   - [Privacy and permissions](#privacy-and-permissions)
@@ -106,6 +107,13 @@ Here Dana's parents are Ruth and David, who are married to each other. The colum
 - Only people with Editor access to the sheet can make changes. To invite someone, tap **Share**, type their email and tap **Invite**. Google emails them a link.
 - You stay signed in when you reload the page. After about an hour, one tap on **Continue as ...** signs you back in.
 
+### Suggesting changes
+
+- Everyone sees the **+** and **✎** buttons. Visitors who are not signed in are asked to sign in with Google first.
+- People who can view the tree but not edit it fill in the same forms. Instead of saving, the site prepares an email to the tree's admin (in Gmail, another email app, or as text to copy). They press **Send** themselves.
+- The email has a link. The admin opens it, checks the change against the tree as it is now, and taps **Apply**.
+- Requests go to the sheet's owner. Editors can choose another address, or turn requests off, under **Share > Change requests**.
+
 ### Sharing links
 
 Tap **Share** to copy the tree's link, or to send it through your phone's share menu. Under **Open the link on** you can make the link open on a specific person, going up (ancestors) or down (descendants).
@@ -140,6 +148,7 @@ Freemily Tree is a static web application: HTML, CSS and plain JavaScript, with 
 - **Reading a tree:** the browser downloads the sheet as CSV from Google's public export (`docs.google.com/spreadsheets/d/<id>/gviz/tq?tqx=out:csv`). This works for sheets shared as "Anyone with the link can view" and needs no sign-in. When the user is signed in, the site can also read their own private sheets through the Google Sheets API.
 - **Signing in:** Google Identity Services (OAuth 2.0 token flow in the browser) with the scopes `drive.file`, `email` and `profile`.
 - **Editing:** the Google Sheets API, called directly from the browser with the user's own access token.
+- **Change requests:** no server and no extra permission. The site builds a Gmail compose link (or `mailto:`) whose message contains a link like `?sheet=<id>#request=<base64url JSON>`. The request sits after the `#`, so it never reaches the web server. Where requests go is stored as Drive file properties on the sheet (`ftRequestsTo`, `ftRequests`).
 - **Opening existing sheets:** the Google Picker. Picking a file grants the site access to that one file under `drive.file`.
 - **Creating trees, sharing and inviting:** the Google Drive API (create the sheet, move it into the Freemily Trees folder, set link sharing, add editors).
 - **Remembering things:** the browser's local storage holds the last opened tree, the list of trees, and the sign-in token until it expires. Nothing is stored on any server.
@@ -251,7 +260,8 @@ Under **Settings > Advanced**, a user can use their own Google Cloud Client ID i
 | `index.html` | Page layout: home, guide, settings, tree view, dialogs |
 | `app.js` | Tree layout and drawing, Google sign-in, reading and writing the sheet, My trees |
 | `onboarding.js` | The step-by-step "How to" guide and the sheet checks |
-| `share.js` | The Share dialog: links and inviting editors |
+| `share.js` | The Share dialog: links, inviting editors, change request settings |
+| `requests.js` | Change requests: preparing the email for viewers, and the review dialog for editors |
 | `style.css` | All styles, including the mobile layout |
 | `config.example.js` | Template for `config.js` (Google Client ID, API key, project number) |
 | `server.js` | Small local development server (`node server.js`) |

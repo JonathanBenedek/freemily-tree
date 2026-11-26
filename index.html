@@ -235,6 +235,7 @@
         <button class="modal-close" id="modal-close-btn">✕</button>
       </div>
       <form id="add-form">
+        <p id="form-request-notice" class="request-notice request-only"></p>
         <input type="hidden" id="form-relation" />
         <input type="hidden" id="form-related-to" />
 
@@ -276,6 +277,11 @@
           <textarea id="form-comments" rows="2" placeholder="Birth year, notes…" enterkeyhint="done"></textarea>
         </div>
 
+        <div class="form-group request-only">
+          <label for="form-note">Note to the admin <span class="optional">(optional)</span></label>
+          <textarea id="form-note" rows="2" maxlength="500" placeholder="How do you know? Anything they should check…"></textarea>
+        </div>
+
         <div class="modal-actions">
           <button type="button" id="form-cancel-btn" class="btn btn-secondary">Cancel</button>
           <button type="submit" id="form-submit-btn" class="btn btn-primary">Add Person</button>
@@ -289,10 +295,11 @@
   <div id="edit-modal" class="modal-backdrop hidden" data-nosnippet>
     <div class="modal">
       <div class="modal-header">
-        <h2>Edit Person</h2>
+        <h2 id="edit-modal-title">Edit Person</h2>
         <button class="modal-close" id="edit-modal-close-btn">✕</button>
       </div>
       <form id="edit-form">
+        <p id="edit-form-request-notice" class="request-notice request-only"></p>
         <input type="hidden" id="edit-form-id" />
         <div class="form-row">
           <div class="form-group">
@@ -312,12 +319,75 @@
           <label for="edit-form-comments">Comments</label>
           <textarea id="edit-form-comments" rows="2" placeholder="Birth year, notes…" enterkeyhint="done"></textarea>
         </div>
+        <div class="form-group request-only">
+          <label for="edit-form-note">Note to the admin <span class="optional">(optional)</span></label>
+          <textarea id="edit-form-note" rows="2" maxlength="500" placeholder="How do you know? Anything they should check…"></textarea>
+        </div>
         <div class="modal-actions" style="justify-content:space-between;align-items:center;gap:12px;">
           <button type="button" id="edit-form-delete-btn" class="btn btn-danger btn-icon" title="Remove person">🗑</button>
           <button type="submit" id="edit-form-submit-btn" class="btn btn-primary" style="flex:1;">Save</button>
         </div>
         <div id="edit-form-error" class="error-msg hidden"></div>
       </form>
+    </div>
+  </div>
+
+  <!-- ===== "PLEASE SIGN IN" (requests.js) ===== -->
+  <div id="signin-gate-modal" class="modal-backdrop hidden" data-nosnippet>
+    <div class="modal request-modal" role="dialog" aria-labelledby="signin-gate-title">
+      <div class="modal-header">
+        <h2 id="signin-gate-title">Sign in to make changes</h2>
+      </div>
+      <div class="request-body">
+        <p>To add or change people in this tree, please sign in with Google.</p>
+        <p class="share-hint">If you can't edit this tree yourself, you can still suggest a change. We'll send it to the tree's admin to review.</p>
+        <div class="modal-actions">
+          <button type="button" id="signin-gate-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="button" id="signin-gate-continue" class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SEND A CHANGE REQUEST (requests.js) ===== -->
+  <div id="request-send-modal" class="modal-backdrop hidden" data-nosnippet>
+    <div class="modal request-modal" role="dialog" aria-labelledby="request-send-title">
+      <div class="modal-header">
+        <h2 id="request-send-title">Send your request</h2>
+        <button class="modal-close" id="request-send-close" aria-label="Close">✕</button>
+      </div>
+      <div class="request-body">
+        <p class="request-to">To: <strong id="request-send-to"></strong></p>
+        <pre id="request-send-summary" class="request-summary"></pre>
+        <p class="share-hint">Your email opens with the message ready. Press <strong>Send</strong> there. The admin will see your name and email address.</p>
+        <div class="request-send-actions">
+          <a id="request-gmail-btn" class="btn btn-primary" target="_blank" rel="noopener">Send with Gmail</a>
+          <a id="request-mailto-btn" class="btn btn-secondary">Other email app</a>
+          <button type="button" id="request-copy-btn" class="btn btn-secondary">Copy message</button>
+        </div>
+        <p id="request-send-done" class="request-done hidden">Thanks! After you press Send in your email, the admin will review your change.</p>
+        <div class="modal-actions">
+          <button type="button" id="request-send-done-btn" class="btn btn-secondary">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REVIEW A CHANGE REQUEST (requests.js) ===== -->
+  <div id="request-review-modal" class="modal-backdrop hidden" data-nosnippet>
+    <div class="modal modal-wide request-modal" role="dialog" aria-labelledby="request-review-title">
+      <div class="modal-header">
+        <h2 id="request-review-title">Change request</h2>
+        <button class="modal-close" id="request-review-close" aria-label="Close">✕</button>
+      </div>
+      <div class="request-body">
+        <div id="request-review-content"></div>
+        <div id="request-review-error" class="error-msg hidden"></div>
+        <div class="modal-actions">
+          <button type="button" id="request-ignore-btn" class="btn btn-secondary">Ignore</button>
+          <button type="button" id="request-apply-btn" class="btn btn-primary">Apply</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -468,6 +538,7 @@ function doGet(e) {
           <div id="share-invite-error" class="error-msg hidden"></div>
           <p class="share-hint">Google emails them a link. They open the tree and tap <strong>Sign in to edit</strong>, using that same email.</p>
         </div>
+        <div id="share-requests"></div>
       </div>
     </div>
   </div>
@@ -476,5 +547,6 @@ function doGet(e) {
   <script src="app.js"></script>
   <script src="onboarding.js"></script>
   <script src="share.js"></script>
+  <script src="requests.js"></script>
 </body>
 </html>

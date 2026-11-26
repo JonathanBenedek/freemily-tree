@@ -29,14 +29,14 @@ source .deploy.env
 : "${BUCKET:?Set BUCKET in .deploy.env}"
 : "${SITE_URL:?Set SITE_URL in .deploy.env}"
 
-FILES=(index.html config.js app.js onboarding.js share.js style.css manifest.json privacy.html terms.html
+FILES=(index.html config.js app.js onboarding.js share.js requests.js style.css manifest.json privacy.html terms.html
        robots.txt sitemap.xml favicon.ico favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-image.png)
-VERSIONED=(style.css config.js app.js onboarding.js share.js)
+VERSIONED=(style.css config.js app.js onboarding.js share.js requests.js)
 
 for f in "${FILES[@]}"; do
   [ -f "$f" ] || { echo "Missing $f. (config.js: copy config.example.js and fill it in.)" >&2; exit 1; }
 done
-for f in config.js app.js onboarding.js share.js; do node --check "$f"; done
+for f in config.js app.js onboarding.js share.js requests.js; do node --check "$f"; done
 
 hash_of() {
   if command -v md5 >/dev/null 2>&1; then md5 -q "$1"; else md5sum "$1" | cut -d' ' -f1; fi
