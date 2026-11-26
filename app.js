@@ -2953,6 +2953,20 @@ function initSearch() {
   input.addEventListener('keydown', onSearchKeydown);
   input.addEventListener('blur', () => setTimeout(closeSearchDropdown, 150));
 
+  // Cmd+F / Ctrl+F jumps to the person search while a tree is on screen
+  // (instead of the browser's find-in-page, which can't see inside the tree drawing).
+  document.addEventListener('keydown', (e) => {
+    if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey || e.key.toLowerCase() !== 'f') return;
+    const treeOnScreen = $('tree-screen')?.classList.contains('active')
+      && $('home-panel')?.classList.contains('hidden')
+      && !document.querySelector('.modal-backdrop:not(.hidden)')
+      && input.offsetParent !== null;
+    if (!treeOnScreen) return;
+    e.preventDefault();
+    input.focus();
+    input.select();
+  });
+
   // Parent 2 autocomplete in add modal
   const p2input    = $('form-parent2-search');
   const p2dropdown = $('form-parent2-dropdown');
