@@ -20,6 +20,7 @@
   --node-shadow: rgba(0,0,0,0.08);
   --couple-line: #c8a882;
   --family-line: #b0917a;
+  --path-line: #1f8a8a;      /* the route in "how two people are connected" */
   --radius: 12px;
   --shadow: 0 2px 12px rgba(0,0,0,0.1);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.15);
@@ -735,9 +736,32 @@ small a:hover { text-decoration: underline; }
   position: relative;
   flex: 1;
   min-width: 120px;
-  max-width: 260px;
+  max-width: 296px;
   margin: 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
+.search-container.two { max-width: 480px; }
+.search-one, .search-pick { position: relative; flex: 1; min-width: 0; }
+.search-two { flex: 1; min-width: 0; display: flex; gap: 4px; }
+.search-two.hidden, .search-one.hidden { display: none; }
+.search-pick .search-input.picked { border-color: var(--path-line); background: #eef7f7; font-weight: 600; padding-right: 26px; }
+.search-clear {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border: none; border-radius: 50%;
+  background: none; color: var(--text3); font-size: 11px; cursor: pointer; line-height: 1;
+}
+.search-clear:hover { background: var(--accent-light); color: var(--accent); }
+.search-mode-btn {
+  flex: none; width: 32px; height: 30px;
+  border: 1.5px solid var(--border); border-radius: 6px;
+  background: var(--surface); cursor: pointer; font-size: 15px; line-height: 1;
+  filter: grayscale(1); opacity: 0.75;
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+}
+.search-mode-btn:hover { border-color: var(--accent); opacity: 1; }
+.search-mode-btn[aria-pressed="true"] { border-color: var(--path-line); background: #eef7f7; filter: none; opacity: 1; }
 
 .search-input {
   width: 100%;
@@ -841,6 +865,8 @@ small a:hover { text-decoration: underline; }
   font-size: 12px;
 }
 .mode-bar .btn-sm:hover { background: rgba(255,255,255,0.35); }
+.mode-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mode-chain { white-space: normal; }
 
 #tree-container {
   flex: 1;
@@ -878,6 +904,12 @@ small a:hover { text-decoration: underline; }
 }
 
 .node-group { cursor: pointer; }
+
+/* How two people are connected: the route and its people */
+.on-path .node-rect { stroke: var(--path-line); stroke-width: 2.5; }
+.connection-end .node-rect { stroke: var(--path-line); stroke-width: 4; filter: drop-shadow(0 0 8px rgba(31,138,138,0.45)); }
+.connection-badge circle { fill: var(--path-line); stroke: white; stroke-width: 2; }
+.connection-badge text { fill: white; font-size: 11px; font-weight: 700; dominant-baseline: central; text-anchor: middle; pointer-events: none; }
 
 .avatar-bg {
   fill: var(--accent-light);
@@ -981,6 +1013,8 @@ small a:hover { text-decoration: underline; }
   stroke-width: 1.8;
   fill: none;
 }
+
+.line-path { stroke: var(--path-line); stroke-width: 4; stroke-linecap: round; }
 
 /* ===== ZOOM CONTROLS ===== */
 #zoom-controls {
@@ -1312,6 +1346,8 @@ small a:hover { text-decoration: underline; }
   .btn-sm    { padding: 5px 10px; font-size: 12px; }
 
   .search-container { min-width: 100px; margin: 0 4px; }
+  /* Two people: the boxes get their own row under the top bar */
+  .search-container.two { flex-basis: 100%; max-width: none; order: 10; margin: 0; }
 
   /* Setup card */
   .setup-card { padding: 28px 20px; }

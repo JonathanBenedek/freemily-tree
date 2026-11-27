@@ -17,8 +17,8 @@ function treeLink(id = state.sheetId) {
 // ── "Open the link on": whole tree, or a person + up/down ─────────────
 const personLabel = p => `${p.firstName} ${p.lastName || ''}`.trim() + ` · #${p.id}`;
 
-function shareTargetPerson() {
-  const m = $('share-person-input').value.match(/#(\S+)\s*$/);
+function shareTargetPerson(inputId = 'share-person-input') {
+  const m = $(inputId).value.match(/#(\S+)\s*$/);
   return m ? state.people.find(p => String(p.id) === m[1]) : null;
 }
 
@@ -31,15 +31,28 @@ function shareLink() {
       const dir = document.querySelector('input[name="share-dir"]:checked')?.value || 'up';
       link += `&person=${encodeURIComponent(person.id)}&view=${dir}`;
     }
+  } else if ($('share-target-mode').value === 'pair') {
+    const a = shareTargetPerson(), b = shareTargetPerson('share-person2-input');
+    if (a && b) {
+      link += `&person=${encodeURIComponent(a.id)}&to=${encodeURIComponent(b.id)}`;
+      const c = state.viewMode === 'connection' ? state.connection : null;
+      if (c && c.way > 0 && c.aId === String(a.id) && c.bId === String(b.id)) link += `&way=${c.way + 1}`;
+    }
   }
   return link;
 }
 
 function updateShareLink() {
-  const personMode = $('share-target-mode').value === 'person';
-  $('share-person-row').classList.toggle('hidden', !personMode);
-  const missing = personMode && !shareTargetPerson();
-  $('share-person-error').classList.toggle('hidden', !(missing && $('share-person-input').value.trim()));
+  const mode = $('share-target-mode').value;
+  const personMode = mode === 'person', pairMode = mode === 'pair';
+  $('share-person-row').classList.toggle('hidden', !personMode && !pairMode);
+  $('share-person2-input').classList.toggle('hidden', !pairMode);
+  document.querySelector('.share-dir').classList.toggle('hidden', !personMode);
+  $('share-person-input').placeholder = pairMode ? 'First person…' : 'Type a name…';
+  const typedButMissing = id => $(id).value.trim() && !shareTargetPerson(id);
+  const missing = (personMode || pairMode) && typedButMissing('share-person-input')
+    || pairMode && typedButMissing('share-person2-input');
+  $('share-person-error').classList.toggle('hidden', !missing);
   $('share-link-input').value = shareLink();
 }
 
@@ -48,7 +61,14 @@ function prefillShareTarget() {
   $('share-person-list').innerHTML = state.people
     .map(p => `<option value="${escHtml(personLabel(p))}"></option>`).join('');
   const focal = state.focusId != null ? state.people.find(p => String(p.id) === String(state.focusId)) : null;
-  if (focal && (state.viewMode === 'ancestors' || state.viewMode === 'descendants')) {
+  const conn = state.viewMode === 'connection' ? state.connection : null;
+  const byId = id => state.people.find(p => String(p.id) === id);
+  $('share-person2-input').value = '';
+  if (conn && byId(conn.aId) && byId(conn.bId)) {
+    $('share-target-mode').value = 'pair';
+    $('share-person-input').value = personLabel(byId(conn.aId));
+    $('share-person2-input').value = personLabel(byId(conn.bId));
+  } else if (focal && (state.viewMode === 'ancestors' || state.viewMode === 'descendants')) {
     $('share-target-mode').value = 'person';
     $('share-person-input').value = personLabel(focal);
     document.querySelector(`input[name="share-dir"][value="${state.viewMode === 'ancestors' ? 'up' : 'down'}"]`).checked = true;
@@ -298,9 +318,10 @@ document.addEventListener('DOMContentLoaded', () => {
   $('share-copy-btn').addEventListener('click', copyShareLink);
   $('share-target-mode').addEventListener('change', () => {
     updateShareLink();
-    if ($('share-target-mode').value === 'person' && !shareTargetPerson()) $('share-person-input').focus();
+    if ($('share-target-mode').value !== 'tree' && !shareTargetPerson()) $('share-person-input').focus();
   });
   $('share-person-input').addEventListener('input', updateShareLink);
+  $('share-person2-input').addEventListener('input', updateShareLink);
   document.querySelectorAll('input[name="share-dir"]').forEach(r => r.addEventListener('change', updateShareLink));
   $('share-native-btn').addEventListener('click', nativeShare);
   $('share-invite-btn').addEventListener('click', onInviteClick);

@@ -146,9 +146,24 @@
         </button>
         <div id="tree-menu" class="tree-menu hidden" role="menu"></div>
       </div>
-      <div class="search-container">
-        <input type="text" id="search-input" class="search-input" placeholder="Search person…" autocomplete="off" />
-        <div id="search-dropdown" class="search-dropdown hidden"></div>
+      <div class="search-container" id="search-container">
+        <div class="search-one" id="search-one">
+          <input type="text" id="search-input" class="search-input" placeholder="Search person…" autocomplete="off" />
+          <div id="search-dropdown" class="search-dropdown hidden"></div>
+        </div>
+        <div class="search-two hidden" id="search-two">
+          <div class="search-pick">
+            <input type="text" id="search-a" class="search-input" placeholder="First person…" autocomplete="off" aria-label="First person" />
+            <button type="button" id="search-a-clear" class="search-clear hidden" aria-label="Clear first person" title="Clear">✕</button>
+            <div id="search-a-dropdown" class="search-dropdown hidden"></div>
+          </div>
+          <div class="search-pick">
+            <input type="text" id="search-b" class="search-input" placeholder="Second person…" autocomplete="off" aria-label="Second person" />
+            <button type="button" id="search-b-clear" class="search-clear hidden" aria-label="Clear second person" title="Clear">✕</button>
+            <div id="search-b-dropdown" class="search-dropdown hidden"></div>
+          </div>
+        </div>
+        <button type="button" id="search-mode-btn" class="search-mode-btn" aria-pressed="false" title="How are two people connected?" aria-label="How are two people connected?">👥</button>
       </div>
       <div class="nav-actions">
         <button id="share-btn" class="btn btn-sm btn-share">🔗 Share</button>
@@ -162,7 +177,10 @@
     <!-- Focus-mode banner (hidden in full-tree mode) -->
     <div id="mode-bar" class="mode-bar hidden">
       <span id="mode-label"></span>
-      <button id="back-to-full-btn" class="btn btn-sm">✕ Full tree</button>
+      <span class="mode-actions">
+        <button id="other-way-btn" class="btn btn-sm hidden">Other way ›</button>
+        <button id="back-to-full-btn" class="btn btn-sm">✕ Full tree</button>
+      </span>
     </div>
 
     <div id="tree-container">
@@ -511,10 +529,12 @@ function doGet(e) {
           <select id="share-target-mode">
             <option value="tree">The whole tree</option>
             <option value="person">A person</option>
+            <option value="pair">How two people are connected</option>
           </select>
           <div id="share-person-row" class="share-person-row hidden">
             <input type="text" id="share-person-input" list="share-person-list" placeholder="Type a name…" autocomplete="off" />
             <datalist id="share-person-list"></datalist>
+            <input type="text" id="share-person2-input" class="hidden" list="share-person-list" placeholder="Second person…" autocomplete="off" />
             <div class="share-dir" role="radiogroup" aria-label="Direction">
               <label><input type="radio" name="share-dir" value="up" checked /> ⬆ Up (ancestors)</label>
               <label><input type="radio" name="share-dir" value="down" /> ⬇ Down (descendants)</label>

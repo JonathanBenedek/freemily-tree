@@ -25,6 +25,7 @@ const state = {
   layout: null,
   viewMode: 'full',
   focusedName: null,
+  connection: null,    // how two people are connected: { aId, bId, way, … } (see CONNECTION)
   importMode: false,   // true when data loaded from local CSV — writes are disabled
 };
 
@@ -114,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('refresh-btn').addEventListener('click', () => { resetToFullTree(); loadTree(state.sheetId); });
   $('change-sheet-btn').addEventListener('click', showSetupScreen);
   $('back-to-full-btn').addEventListener('click', resetToFullTree);
+  $('other-way-btn').addEventListener('click', showOtherConnection);
 
   // Zoom controls
   $('zoom-in-btn').addEventListener('click',    () => zoom(1.25));
@@ -530,7 +532,14 @@ function syncViewInAddressBar() {
     const url = new URL(window.location.href);
     url.searchParams.delete('node');
     url.searchParams.delete('mode');
-    if ((state.viewMode === 'ancestors' || state.viewMode === 'descendants') && state.focusId != null) {
+    url.searchParams.delete('to');
+    url.searchParams.delete('way');
+    if (state.viewMode === 'connection' && state.connection) {
+      url.searchParams.set('person', state.connection.aId);
+      url.searchParams.set('to', state.connection.bId);
+      url.searchParams.delete('view');
+      if (state.connection.way > 0) url.searchParams.set('way', state.connection.way + 1);
+    } else if ((state.viewMode === 'ancestors' || state.viewMode === 'descendants') && state.focusId != null) {
       url.searchParams.set('person', state.focusId);
       url.searchParams.set('view', state.viewMode === 'ancestors' ? 'up' : 'down');
     } else {
@@ -641,7 +650,7 @@ async function loadTree(sheetId, { applyParams = false, restorePersonId = null, 
     state.treeOpen = true;
     // A freshly opened tree starts on the whole tree (a link's &person= is applied below)
     if (state.viewMode !== 'full') {
-      state.viewMode = 'full'; state.focusedName = null; state.focusId = null;
+      state.viewMode = 'full'; state.focusedName = null; state.focusId = null; state.connection = null;
       updateModeBar();
     }
     renderFamilyTree(people, null, null, { startFocus: !restorePersonId });
@@ -692,6 +701,7 @@ function restorePersonFocus(personId, mode) {
 }
 
 // Link parameters:  &person=<id or name>  &view=up|down   (view defaults to up)
+//                   &person=<id or name>  &to=<id or name>  [&way=2]  (how two people are connected)
 // Older links still work: &node=<id or name>  &mode=up|down  (no mode = whole tree, centred on them)
 function applyUrlParams() {
   openReviewFromHash(); // #request=… from a change request email (requests.js)
@@ -702,6 +712,16 @@ function applyUrlParams() {
 
   const person = findPersonByParam(personParam);
   if (!person) { showToast(`Couldn't find "${personParam}" in this tree.`, 'error'); return; }
+
+  // &person=<A>&to=<B>[&way=N]: how two people are connected
+  const toParam = params.get('to');
+  if (toParam) {
+    const other = findPersonByParam(toParam);
+    if (!other) { showToast(`Couldn't find "${toParam}" in this tree.`, 'error'); return; }
+    const way = Math.max(0, (parseInt(params.get('way'), 10) || 1) - 1);
+    focusConnection(person, other, { way });
+    return;
+  }
 
   if (viewParam === 'down') {
     focusDescendants(person);
@@ -1234,7 +1254,7 @@ const HG  = 60;   // horizontal gap between family units
 const VG  = 140;  // vertical gap between generations
 const PAD = 60;   // canvas padding
 
-function computeLayout(people, genOverride = null, focalId = null, viewMode = 'full') {
+function computeLayout(people, genOverride = null, focalId = null, viewMode = 'full', orderKey = null) {
   if (!people.length) return { positions: {}, rows: [], childrenOf: {} };
 
   const byId = {};
@@ -1393,7 +1413,19 @@ function computeLayout(people, genOverride = null, focalId = null, viewMode = 'f
     });
   }
 
-  if (viewMode === 'ancestors') {
+  if (viewMode === 'connection' && orderKey) {
+    // Connection view: rows follow the route from A (left) to B (right).
+    // orderKey gives each shown person a place along the route (see connectionView).
+    const keyOf = id => orderKey[id] ?? Infinity;
+    rows.forEach(row => {
+      row.forEach(item => {
+        if (item.type === 'couple' && keyOf(item.ids[1]) < keyOf(item.ids[0])) item.ids.reverse();
+        const keys = item.ids.map(keyOf).filter(Number.isFinite);
+        item._sortKey = keys.length ? keys.reduce((s, v) => s + v, 0) / keys.length : Infinity;
+      });
+      row.sort((a, b) => a._sortKey - b._sortKey);
+    });
+  } else if (viewMode === 'ancestors') {
     // Bottom-up: start from the focal (bottom) row and work upward
     recordCols(rows[rows.length - 1]);
     for (let g = rows.length - 2; g >= 0; g--) {
@@ -1576,6 +1608,14 @@ function computeLayout(people, genOverride = null, focalId = null, viewMode = 'f
         resolveRowOverlaps(rows[g]);
       }
     }
+    // Connection view: one more left-to-right sweep per row, so no two boxes
+    // can ever overlap whatever the passes above did.
+    if (viewMode === 'connection') {
+      rows.forEach(row => {
+        row.sort((a, b) => positions[a.ids[0]].x - positions[b.ids[0]].x);
+        resolveRowOverlaps(row);
+      });
+    }
   }
 
   // 1. Normalise: the overlap-resolution passes only ever push items rightward,
@@ -1651,7 +1691,8 @@ function renderFamilyTree(people, genOverride = null, focalId = null, { preserve
     return;
   }
 
-  const layout = computeLayout(people, genOverride, focalId, state.viewMode);
+  const layout = computeLayout(people, genOverride, focalId, state.viewMode,
+    state.viewMode === 'connection' ? state.connection?.order : null);
   state.layout = layout;
   const { positions, rows, childrenOf, byId } = layout;
 
@@ -1705,6 +1746,11 @@ function renderFamilyTree(people, genOverride = null, focalId = null, { preserve
   linesGroup.setAttribute('class', 'lines-group tree-enter');
   treeRoot.appendChild(linesGroup);
 
+  // Connection view: the route is drawn on top of the other lines, thicker and in its own colour
+  const pathEdges = state.viewMode === 'connection' ? state.connection?.pathEdges : null;
+  const pathGroup = svgEl('g');
+  pathGroup.setAttribute('class', 'lines-group path-group tree-enter');
+
   // Spouse lines (dashed horizontal)
   rows.forEach(row => {
     row.forEach(item => {
@@ -1712,7 +1758,8 @@ function renderFamilyTree(people, genOverride = null, focalId = null, { preserve
       const pos1 = positions[item.ids[0]];
       const pos2 = positions[item.ids[1]];
       if (!pos1 || !pos2) return;
-      addLine(linesGroup, 'line-spouse',
+      const onPath = pathEdges?.has(`${item.ids[0]}~${item.ids[1]}`);
+      addLine(onPath ? pathGroup : linesGroup, onPath ? 'line-spouse line-path' : 'line-spouse',
         pos1.x + NW, pos1.y + NH / 2,
         pos2.x,      pos2.y + NH / 2);
     });
@@ -1750,17 +1797,19 @@ function renderFamilyTree(people, genOverride = null, focalId = null, { preserve
       // Draw one cubic bezier from couple-origin to each child's top-center.
       // Control points both at the vertical midpoint so the curve bows
       // horizontally — each line fans out independently with no shared segment.
-      kidsData.forEach(({ pos }) => {
+      kidsData.forEach(({ id, pos }) => {
         const cx   = pos.x + NW / 2;
         const cy   = pos.y;
         const midY = originY + (cy - originY) / 2;
         const path = svgEl('path');
-        path.setAttribute('class', 'line-parent');
+        const onPath = pathEdges && item.ids.some(pid => pathEdges.has(`${pid}>${id}`));
+        path.setAttribute('class', onPath ? 'line-parent line-path' : 'line-parent');
         path.setAttribute('d', `M ${originX} ${originY} C ${originX} ${midY}, ${cx} ${midY}, ${cx} ${cy}`);
-        linesGroup.appendChild(path);
+        (onPath ? pathGroup : linesGroup).appendChild(path);
       });
     });
   });
+  if (pathGroup.childNodes.length) treeRoot.appendChild(pathGroup);
 
   // 2. Draw person nodes (on top of lines)
   const nodesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -1971,6 +2020,379 @@ function focusDescendants(person, { includeParents = false, preserveView = false
   renderFamilyTree(state.people.filter(p => subset.has(p.id)), genOverride, person.id, { preserveView, anchorId: preserveView ? person.id : null });
 }
 
+// ===================================================================
+// CONNECTION — how two people are connected
+// ===================================================================
+// People are linked parent ↔ child (blood) and spouse ↔ spouse (marriage).
+// The best route prefers blood: a marriage step costs a bit more, and meeting
+// at a shared child (down, then up) costs extra, so a married couple reads as
+// "married" and not "have a child together".
+const CONN_BLOOD = 1, CONN_MARRIAGE = 1.5, CONN_VALLEY = 1;
+const CONN_MAX_ROUTES = 3;     // "Other way ›" steps through at most this many
+const CONN_EXTRA_COST = 3;     // other routes may be at most this much longer
+
+function connectionGraph() {
+  const { byId, childrenOf } = buildByIdAndChildren();
+  // A marriage link counts only when both rows agree (after filling in a
+  // one-sided link), the same pairs the layout draws as couples.
+  const spouseOf = id => {
+    const s = byId[id]?.spouse;
+    return s && byId[s] && String(byId[s].spouse) === String(id) ? String(s) : null;
+  };
+  const parentsOf = id => {
+    const p = byId[id];
+    return p ? [p.parent1, p.parent2].filter(pid => pid && byId[pid] && String(pid) !== String(id)).map(String) : [];
+  };
+  const neighbours = id => {
+    const out = parentsOf(id).map(pid => ({ id: pid, step: 'up' }));
+    (childrenOf[id] || []).forEach(c => { if (String(c) !== String(id)) out.push({ id: String(c), step: 'down' }); });
+    const s = spouseOf(id);
+    if (s) out.push({ id: s, step: 'spouse' });
+    return out;
+  };
+  return { byId, childrenOf, spouseOf, parentsOf, neighbours };
+}
+
+// Lower is better: cost, then fewer marriage steps, then fewer steps
+function connCompare(a, b) {
+  if (Math.abs(a.cost - b.cost) > 1e-9) return a.cost - b.cost;
+  if (a.m !== b.m) return a.m - b.m;
+  return a.n - b.n;
+}
+
+function connStepCost(step, prevStep) {
+  return (step === 'spouse' ? CONN_MARRIAGE : CONN_BLOOD) + (step === 'up' && prevStep === 'down' ? CONN_VALLEY : 0);
+}
+
+// nodes: [{ id, step }] where step is how we got to this person from the one before
+function connRouteCost(nodes) {
+  let cost = 0, m = 0;
+  for (let i = 1; i < nodes.length; i++) {
+    cost += connStepCost(nodes[i].step, nodes[i - 1].step);
+    if (nodes[i].step === 'spouse') m++;
+  }
+  return { cost, m, n: nodes.length - 1 };
+}
+
+// Small binary heap for Dijkstra
+function connHeap(cmp) {
+  const a = [];
+  return {
+    get size() { return a.length; },
+    push(x) {
+      a.push(x);
+      let i = a.length - 1;
+      while (i > 0) { const p = (i - 1) >> 1; if (cmp(a[i], a[p]) >= 0) break; [a[i], a[p]] = [a[p], a[i]]; i = p; }
+    },
+    pop() {
+      const top = a[0], last = a.pop();
+      if (a.length) {
+        a[0] = last;
+        let i = 0;
+        for (;;) {
+          const l = 2 * i + 1, r = l + 1;
+          let s = i;
+          if (l < a.length && cmp(a[l], a[s]) < 0) s = l;
+          if (r < a.length && cmp(a[r], a[s]) < 0) s = r;
+          if (s === i) break;
+          [a[i], a[s]] = [a[s], a[i]]; i = s;
+        }
+      }
+      return top;
+    },
+  };
+}
+
+// Dijkstra over (person, how we arrived) so the "down then up" extra cost works.
+function connShortest(g, fromId, toId, { bannedNodes = null, bannedEdges = null, startStep = null } = {}) {
+  const key = (id, step) => `${id}|${step || ''}`;
+  const best = new Map();
+  const heap = connHeap(connCompare);
+  const start = { id: fromId, step: startStep, cost: 0, m: 0, n: 0, prev: null };
+  best.set(key(fromId, startStep), start);
+  heap.push(start);
+  while (heap.size) {
+    const cur = heap.pop();
+    if (best.get(key(cur.id, cur.step)) !== cur) continue;
+    if (cur.id === toId) {
+      const nodes = [];
+      for (let s = cur; s; s = s.prev) nodes.push({ id: s.id, step: s.step });
+      nodes.reverse();
+      nodes[0].step = null;
+      return nodes;
+    }
+    for (const nb of g.neighbours(cur.id)) {
+      if (nb.id === fromId || bannedNodes?.has(nb.id) || bannedEdges?.has(`${cur.id}>${nb.id}`)) continue;
+      const nxt = {
+        id: nb.id, step: nb.step, prev: cur,
+        cost: cur.cost + connStepCost(nb.step, cur.step),
+        m: cur.m + (nb.step === 'spouse' ? 1 : 0),
+        n: cur.n + 1,
+      };
+      const k = key(nb.id, nb.step);
+      const old = best.get(k);
+      if (old && connCompare(old, nxt) <= 0) continue;
+      best.set(k, nxt);
+      heap.push(nxt);
+    }
+  }
+  return null;
+}
+
+// Two routes that only differ by going through the other parent of the same
+// couple say the same thing, so compare routes by their chain of couples.
+function connUnits(g, nodes) {
+  // The two chosen people count on their own (they may be married to each other)
+  const last = nodes.length - 1;
+  const unit = (id, i) => { const s = g.spouseOf(id); return s && i > 0 && i < last ? [id, s].sort().join('+') : id; };
+  const out = [];
+  nodes.forEach((n, i) => { const u = unit(n.id, i); if (out[out.length - 1] !== u) out.push(u); });
+  return out;
+}
+const connSignature = (g, nodes) => connUnits(g, nodes).join('/');
+// A route that comes back to a couple it already passed (round a shared child,
+// or out through a sibling and back to the same parents) is a detour, not
+// another way the two are connected.
+function connIsDetour(g, nodes) {
+  const u = connUnits(g, nodes);
+  if (new Set(u).size !== u.length) return true;
+  // Down to a child and up to its other parent, who is the spouse: round a couple
+  if (nodes.some((n, i) => i > 0 && i < nodes.length - 1 && n.step === 'down' && nodes[i + 1].step === 'up'
+    && g.spouseOf(nodes[i - 1].id) === nodes[i + 1].id)) return true;
+  // W → X, then X's spouse Y, when W links to Y the same way (Y is also W's
+  // parent or child): the spouse step only goes round the couple. Same the other way.
+  const linked = (from, to, step) => g.neighbours(from).some(x => x.id === to && x.step === step);
+  return nodes.some((n, i) => {
+    if (n.step !== 'spouse') return false;
+    const x = nodes[i - 1].id, y = n.id;
+    if (i >= 2 && linked(nodes[i - 2].id, y, nodes[i - 1].step)) return true;
+    if (i + 1 < nodes.length && linked(x, nodes[i + 1].id, nodes[i + 1].step)) return true;
+    return false;
+  });
+}
+
+// The best route first, then up to CONN_MAX_ROUTES-1 genuinely different ones
+// (Yen's k-shortest paths, skipping same-couple duplicates, detours and long ways round).
+function connectionRoutes(g, aId, bId) {
+  if (aId === bId) return [];
+  const first = connShortest(g, aId, bId);
+  if (!first) return [];
+  const firstCost = connRouteCost(first).cost;
+  const routeKey = nodes => nodes.map(n => n.id).join('>');
+  const found = [first];                       // every route taken, duplicates included
+  const result = [first];
+  const sigs = new Set([connSignature(g, first)]);
+  const seen = new Set([routeKey(first)]);
+  const candidates = [];
+  while (result.length < CONN_MAX_ROUTES && found.length < 20) {
+    const prev = found[found.length - 1];
+    for (let i = 0; i < prev.length - 1; i++) {
+      const root = prev.slice(0, i + 1);
+      const rootIds = root.map(n => n.id);
+      const bannedEdges = new Set();
+      found.forEach(r => {
+        if (r.length > i + 1 && rootIds.every((id, j) => r[j].id === id)) bannedEdges.add(`${r[i].id}>${r[i + 1].id}`);
+      });
+      const bannedNodes = new Set(rootIds.slice(0, -1));
+      const spur = connShortest(g, rootIds[i], bId, { bannedNodes, bannedEdges, startStep: root[i].step });
+      if (!spur) continue;
+      const total = [...root, ...spur.slice(1)];
+      const k = routeKey(total);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const c = connRouteCost(total);
+      if (c.cost > firstCost + CONN_EXTRA_COST) continue;
+      candidates.push({ nodes: total, ...c });
+    }
+    if (!candidates.length) break;
+    candidates.sort(connCompare);
+    const next = candidates.shift().nodes;
+    found.push(next);
+    const sig = connSignature(g, next);
+    if (!sigs.has(sig) && !connIsDetour(g, next)) { sigs.add(sig); result.push(next); }
+  }
+  return result;
+}
+
+// ── Relationship words (neutral: the sheet has no gender column) ──────
+const ORDINALS = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
+const greats = n => 'great-'.repeat(Math.max(0, n));
+
+// B relative to A along a pure blood route: `up` steps up, then `down` steps down.
+// Returns { term, plural } — plural set when the word works both ways.
+function bloodTerm(up, down, g = null, aId = null, bId = null) {
+  if (up === 0 && down === 0) return null;
+  if (up === 0) return { term: down === 1 ? 'child' : `${greats(down - 2)}grandchild` };
+  if (down === 0) return { term: up === 1 ? 'parent' : `${greats(up - 2)}grandparent` };
+  if (up === 1 && down === 1) {
+    if (g && aId && bId) {
+      const pa = g.parentsOf(aId), pb = g.parentsOf(bId);
+      const shared = pa.filter(id => pb.includes(id)).length;
+      if (pa.length === 2 && pb.length === 2 && shared === 1) return { term: 'half-sibling', plural: 'half-siblings' };
+    }
+    return { term: 'sibling', plural: 'siblings' };
+  }
+  if (up === 1) return { term: down === 2 ? 'niece or nephew' : `${greats(down - 3)}grandniece or ${greats(down - 3)}grandnephew` };
+  if (down === 1) return { term: up === 2 ? 'aunt or uncle' : `${greats(up - 2)}aunt or ${greats(up - 2)}uncle` };
+  const degree = Math.min(up, down) - 1, removed = Math.abs(up - down);
+  const ord = ORDINALS[degree] || `${degree}th`;
+  const rem = removed === 0 ? '' : removed === 1 ? ' once removed' : removed === 2 ? ' twice removed' : ` ${removed} times removed`;
+  return { term: `${ord} cousin${rem}`, plural: `${ord} cousins${rem}` };
+}
+
+// Steps must be all "up" then all "down" for a clean blood word
+function upDown(steps) {
+  let i = 0;
+  while (i < steps.length && steps[i] === 'up') i++;
+  const up = i;
+  while (i < steps.length && steps[i] === 'down') i++;
+  return i === steps.length ? { up, down: steps.length - up } : null;
+}
+
+const connFullName  = p => `${p.firstName || ''} ${p.lastName || ''}`.trim() || `#${p.id}`;
+const connFirstName = p => (p.firstName || '').trim() || connFullName(p);
+
+// → { text, chain, kind } — e.g. "Tom Cohen is Dana Levi's first cousin once removed"
+function describeConnection(g, nodes) {
+  const A = g.byId[nodes[0].id], B = g.byId[nodes[nodes.length - 1].id];
+  const a = connFullName(A), b = connFullName(B);
+  const steps = nodes.slice(1).map(n => n.step);
+  const marriages = steps.filter(s => s === 'spouse').length;
+  const kind = !marriages ? 'blood' : marriages === steps.length ? 'marriage' : 'mixed';
+  const stepWord = { up: 'parent', down: 'child', spouse: 'spouse' };
+  const chain = nodes.map((n, i) => (i ? `${stepWord[n.step]} ` : '') + connFirstName(g.byId[n.id])).join(' → ');
+
+  const both = plural => `${a} and ${b} are ${plural}`;
+  const isOf = term => `${b} is ${a}'s ${term}`;
+  let text = null;
+
+  if (!marriages) {
+    const ud = upDown(steps);
+    if (ud) {
+      const t = bloodTerm(ud.up, ud.down, g, A.id, B.id);
+      text = t.plural ? both(t.plural) : isOf(t.term);
+    } else if (steps.length === 2 && steps[0] === 'down' && steps[1] === 'up') {
+      text = `${a} and ${b} have a child together`;
+    } else {
+      text = both('related');
+    }
+  } else if (marriages === 1) {
+    const j = steps.indexOf('spouse');
+    const before = upDown(steps.slice(0, j)), after = upDown(steps.slice(j + 1));
+    if (steps.length === 1) {
+      text = `${a} and ${b} are married`;
+    } else if (before && after && before.up + before.down === 0) {
+      // A's spouse, then blood: B is A's spouse's <rel>
+      const t = bloodTerm(after.up, after.down);
+      if (t.term === 'parent') text = isOf('parent-in-law');
+      else if (t.term === 'sibling') text = both('siblings-in-law');
+      else if (t.term === 'child') text = isOf('stepchild');
+      else text = isOf(`spouse's ${t.term}`);
+    } else if (before && after && after.up + after.down === 0) {
+      // Blood, then spouse: B is the spouse of A's <rel>
+      const t = bloodTerm(before.up, before.down);
+      if (t.term === 'sibling') text = both('siblings-in-law');
+      else if (t.term === 'child') text = isOf('child-in-law');
+      else if (t.term === 'parent') text = isOf('stepparent');
+      else if (/uncle$/.test(t.term)) text = isOf(`${t.term} by marriage`);
+      else text = isOf(`${t.term}'s spouse`);
+    } else if (before && after && before.up === 1 && before.down === 0 && after.up === 0 && after.down === 1) {
+      text = both('stepsiblings');
+    }
+  }
+  if (!text) text = both('related by marriage');
+  return { text, chain, kind };
+}
+
+// Who is shown: the route, each person's spouse, and for every parent → child
+// step all that parent's children (siblings along the way). Rows follow the
+// route: A at 0, a step up −1, down +1, spouse 0, then shifted to start at 0.
+function connectionView(g, nodes) {
+  const gen = {}, order = {};
+  const last = nodes.length - 1, mid = last / 2;
+  let row = 0;
+  nodes.forEach((n, i) => {
+    if (i) row += n.step === 'up' ? -1 : n.step === 'down' ? 1 : 0;
+    gen[n.id] = row;
+    order[n.id] = i;
+  });
+  const pathEdges = new Set();
+  nodes.forEach((n, i) => {
+    if (!i) return;
+    const prev = nodes[i - 1].id;
+    if (n.step === 'up')     pathEdges.add(`${n.id}>${prev}`);
+    if (n.step === 'down')   pathEdges.add(`${prev}>${n.id}`);
+    if (n.step === 'spouse') { pathEdges.add(`${prev}~${n.id}`); pathEdges.add(`${n.id}~${prev}`); }
+  });
+  // Siblings: next to their path sibling on the outside of the route, or between
+  // the two path children when their parent is the top of the route.
+  nodes.forEach((n, i) => {
+    if (!i || n.step === 'spouse') return;
+    const [parentIdx, childIdx] = n.step === 'up' ? [i, i - 1] : [i - 1, i];
+    const parent = nodes[parentIdx].id, child = nodes[childIdx].id;
+    const before = nodes[parentIdx - 1], after = nodes[parentIdx + 1];
+    const peak = before && after && nodes[parentIdx].step === 'up' && after.step === 'down';
+    const kids = (g.childrenOf[parent] || []).map(String).filter(c => gen[c] === undefined);
+    kids.forEach((c, r) => {
+      gen[c] = gen[child];
+      order[c] = peak ? parentIdx + (r + 1) / (kids.length + 1) - 0.5
+               : childIdx < parentIdx ? childIdx - 0.5 - r * 0.01 : childIdx + 0.5 + r * 0.01;
+    });
+  });
+  // Spouses of people on the route, on the side away from the middle
+  nodes.forEach((n, i) => {
+    const s = g.spouseOf(n.id);
+    if (!s || gen[s] !== undefined) return;
+    gen[s] = gen[n.id];
+    order[s] = i + (i < mid ? -0.25 : 0.25);
+  });
+  const min = Math.min(...Object.values(gen));
+  Object.keys(gen).forEach(id => { gen[id] -= min; });
+  return { subset: new Set(Object.keys(gen)), gen, order, pathEdges };
+}
+
+// Show how a and b are connected. way = which route (0 = the closest).
+// Returns false (and leaves the view alone) when they aren't connected.
+function focusConnection(a, b, { way = 0, preserveView = false, track = true } = {}) {
+  const aId = String(a.id), bId = String(b.id);
+  if (aId === bId) { showToast('Pick two different people.', 'error'); return false; }
+  const g = connectionGraph();
+  const routes = connectionRoutes(g, aId, bId);
+  if (!routes.length) {
+    showToast(`${connFullName(a)} and ${connFullName(b)} aren't connected in this tree.`, 'error');
+    if (track) trackConnection('none', 0);
+    return false;
+  }
+  way = Math.min(Math.max(0, way | 0), routes.length - 1);
+  const nodes = routes[way];
+  const { subset, gen, order, pathEdges } = connectionView(g, nodes);
+  const desc = describeConnection(g, nodes);
+  state.viewMode    = 'connection';
+  state.focusId     = null;
+  state.focusedName = null;
+  state.connection  = {
+    aId, bId, way, count: routes.length, nodes, desc, order, pathEdges,
+    pathPeople: new Set(nodes.map(n => n.id)),
+  };
+  setPairPicks(a, b);
+  updateModeBar();
+  renderFamilyTree(state.people.filter(p => subset.has(String(p.id))), gen, null, { preserveView, anchorId: preserveView ? aId : null });
+  if (track) trackConnection(desc.kind, nodes.length - 1);
+  return true;
+}
+
+function showOtherConnection() {
+  const c = state.connection;
+  if (!c || c.count < 2) return;
+  const a = state.people.find(p => String(p.id) === c.aId), b = state.people.find(p => String(p.id) === c.bId);
+  if (a && b) focusConnection(a, b, { way: (c.way + 1) % c.count, track: false });
+}
+
+// No names or ids: only what kind of link it was and how many steps
+function trackConnection(kind, steps) {
+  if (typeof trackTreeEvent === 'function') trackTreeEvent('connection-viewed', state.sheetId, { kind, steps });
+}
+
 // ── Redraw after a change, without moving the view ──────────────────
 // After add / edit / delete: redraw the same view (full tree, or ancestors /
 // descendants of the same person) and keep the anchor person at the exact same
@@ -1993,6 +2415,11 @@ function rerenderCurrentView(anchorId = null) {
   const byIdNow = new Set(state.people.map(p => String(p.id)));
   if (!anchorId || !byIdNow.has(String(anchorId)) || !state.layout?.positions?.[anchorId]) anchorId = centerPersonId();
   const focal = state.focusId != null ? state.people.find(p => String(p.id) === String(state.focusId)) : null;
+  if (state.viewMode === 'connection' && state.connection) {
+    const { aId, bId, way } = state.connection;
+    const a = state.people.find(p => String(p.id) === aId), b = state.people.find(p => String(p.id) === bId);
+    if (a && b && focusConnection(a, b, { way, preserveView: true, track: false })) return;
+  }
   if (state.viewMode === 'ancestors' && focal) {
     focusAncestors(focal, { preserveView: true });
   } else if (state.viewMode === 'descendants' && focal) {
@@ -2033,6 +2460,7 @@ function resetToFullTree() {
   state.viewMode  = 'full';
   state.focusedName = null;
   state.focusId   = null;
+  state.connection = null;
   updateModeBar();
   renderFamilyTree(state.people);
 }
@@ -2056,9 +2484,20 @@ window.addEventListener('resize', syncBarHeights);
 
 function updateModeBar() {
   const bar = $('mode-bar');
+  const other = $('other-way-btn');
+  if (other) {
+    const c = state.viewMode === 'connection' ? state.connection : null;
+    other.classList.toggle('hidden', !(c && c.count > 1));
+    if (c) other.textContent = `Other way (${c.way + 1}/${c.count}) ›`;
+  }
   if (state.viewMode === 'full') {
     bar.classList.add('hidden');
     treeScreen.classList.remove('mode-active');
+  } else if (state.viewMode === 'connection' && state.connection) {
+    const c = state.connection;
+    $('mode-label').innerHTML = `🔗 ${escHtml(c.desc.text)}<span class="mode-hint mode-chain">${escHtml(c.desc.chain)}</span>`;
+    bar.classList.remove('hidden');
+    treeScreen.classList.add('mode-active');
   } else {
     const icon  = state.viewMode === 'ancestors' ? '▲' : '▼';
     const label = state.viewMode === 'ancestors'
@@ -2103,7 +2542,14 @@ function createPersonNode(person, x, y) {
   g.setAttribute('class', 'node-group');
   g.dataset.id = person.id;
 
-  const stubState = navStateFor(person);
+  // Connection view: the two chosen people and everyone on the route stand out.
+  // No dashed "more family" stubs here: almost everyone has some off screen.
+  const conn = state.viewMode === 'connection' ? state.connection : null;
+  const connEnd = conn ? [conn.aId, conn.bId].indexOf(String(person.id)) : -1;
+  if (conn?.pathPeople.has(String(person.id))) g.classList.add('on-path');
+  if (connEnd >= 0) g.classList.add('connection-end');
+
+  const stubState = conn ? {} : navStateFor(person);
   if (stubState.upAllHidden) {
     g.appendChild(makeStub('up', () => focusAncestors(person, { preserveView: true }), 'Parents not shown here. Tap to see ancestors'));
   }
@@ -2118,6 +2564,17 @@ function createPersonNode(person, x, y) {
   rect.setAttribute('rx',     10);
   rect.setAttribute('class',  'node-rect');
   g.appendChild(rect);
+
+  // "1" / "2" badge on the two chosen people
+  if (connEnd >= 0) {
+    const badge = svgEl('g');
+    badge.setAttribute('class', 'connection-badge');
+    badge.setAttribute('transform', `translate(${NW / 2},0)`);
+    const bc = svgEl('circle'); bc.setAttribute('r', 11);
+    const bt = svgEl('text'); bt.setAttribute('y', 1); bt.textContent = String(connEnd + 1);
+    badge.append(bc, bt);
+    g.appendChild(badge);
+  }
 
   // Avatar area — photo if available
   const avatarX = 12, avatarY = NH / 2, avatarR = 22;
@@ -3106,27 +3563,136 @@ function onImportFileChange(e) {
 // ===================================================================
 // SEARCH
 // ===================================================================
-let searchActiveIdx = -1;
+// One person (default) or two people ("how are they connected?")
+let searchMode = 'one';
+const pair = { a: null, b: null };
+
+// Name search with a dropdown: type, pick with the mouse or ↑ ↓ Enter.
+function attachPersonPicker(input, dropdown, onPick) {
+  let active = -1;
+  const close = () => { dropdown.classList.add('hidden'); active = -1; };
+  const items = () => dropdown.querySelectorAll('.search-item');
+  const mark = () => items().forEach((el, i) => el.classList.toggle('active', i === active));
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    active = -1;
+    if (!q) return close();
+    const matches = state.people.filter(p => `${p.firstName} ${p.lastName || ''}`.toLowerCase().includes(q)).slice(0, 10);
+    if (!matches.length) return close();
+    dropdown.innerHTML = '';
+    matches.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'search-item';
+      const full  = `${p.firstName} ${p.lastName || ''}`.trim();
+      const start = full.toLowerCase().indexOf(q);
+      if (start >= 0) {
+        btn.innerHTML =
+          escHtml(full.slice(0, start)) +
+          `<mark>${escHtml(full.slice(start, start + q.length))}</mark>` +
+          escHtml(full.slice(start + q.length));
+      } else {
+        btn.textContent = full;
+      }
+      btn.addEventListener('mousedown', (e) => { e.preventDefault(); close(); onPick(p); });
+      dropdown.appendChild(btn);
+    });
+    dropdown.classList.remove('hidden');
+  });
+  input.addEventListener('keydown', (e) => {
+    if (dropdown.classList.contains('hidden')) return;
+    const list = items();
+    if (!list.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault(); active = Math.min(active + 1, list.length - 1); mark();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault(); active = Math.max(active - 1, 0); mark();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      (active >= 0 ? list[active] : list[0])?.dispatchEvent(new MouseEvent('mousedown'));
+    } else if (e.key === 'Escape') {
+      close(); input.blur();
+    }
+  });
+  input.addEventListener('blur', () => setTimeout(close, 150));
+}
+
+function setSearchMode(mode, { focus = true } = {}) {
+  searchMode = mode;
+  const two = mode === 'two';
+  $('search-container').classList.toggle('two', two);
+  $('search-one').classList.toggle('hidden', two);
+  $('search-two').classList.toggle('hidden', !two);
+  const btn = $('search-mode-btn');
+  btn.setAttribute('aria-pressed', String(two));
+  btn.title = two ? 'Back to finding one person' : 'How are two people connected?';
+  btn.setAttribute('aria-label', btn.title);
+  syncBarHeights();
+  if (focus) searchFocusTarget().focus();
+}
+
+// Where Cmd/Ctrl+F and the toggle put the cursor
+function searchFocusTarget() {
+  if (searchMode !== 'two') return $('search-input');
+  return !pair.a ? $('search-a') : !pair.b ? $('search-b') : $('search-a');
+}
+
+// Fill the two boxes (also when a connection link is opened)
+function setPairPicks(a, b) {
+  showPairPick('a', a);
+  showPairPick('b', b);
+  if (searchMode !== 'two') setSearchMode('two', { focus: false });
+}
+
+function showPairPick(which, person) {
+  pair[which] = person || null;
+  const input = $(`search-${which}`);
+  input.value = person ? `${person.firstName} ${person.lastName || ''}`.trim() : '';
+  input.classList.toggle('picked', !!person);
+  $(`search-${which}-clear`).classList.toggle('hidden', !person);
+}
+
+function onPairPick(which, person) {
+  showPairPick(which, person);
+  if (!pair.a || !pair.b) { searchFocusTarget().focus(); return; }
+  if (String(pair.a.id) === String(pair.b.id)) {
+    showToast('Pick two different people.', 'error');
+    showPairPick('b', null);
+    $('search-b').focus();
+    return;
+  }
+  $(`search-${which}`).blur();
+  focusConnection(pair.a, pair.b);
+}
 
 function initSearch() {
   const input = $('search-input');
   if (!input) return;
-  input.addEventListener('input', onSearchInput);
-  input.addEventListener('keydown', onSearchKeydown);
-  input.addEventListener('blur', () => setTimeout(closeSearchDropdown, 150));
+  attachPersonPicker(input, $('search-dropdown'), searchFocusPerson);
+
+  ['a', 'b'].forEach(which => {
+    const box = $(`search-${which}`);
+    // Typing over a picked name un-picks it
+    box.addEventListener('input', () => {
+      if (pair[which]) { pair[which] = null; box.classList.remove('picked'); $(`search-${which}-clear`).classList.add('hidden'); }
+    });
+    attachPersonPicker(box, $(`search-${which}-dropdown`), p => onPairPick(which, p));
+    $(`search-${which}-clear`).addEventListener('click', () => { showPairPick(which, null); box.focus(); });
+  });
+  $('search-mode-btn').addEventListener('click', () => setSearchMode(searchMode === 'two' ? 'one' : 'two'));
 
   // Cmd+F / Ctrl+F jumps to the person search while a tree is on screen
   // (instead of the browser's find-in-page, which can't see inside the tree drawing).
   document.addEventListener('keydown', (e) => {
     if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey || e.key.toLowerCase() !== 'f') return;
+    const target = searchFocusTarget();
     const treeOnScreen = $('tree-screen')?.classList.contains('active')
       && $('home-panel')?.classList.contains('hidden')
       && !document.querySelector('.modal-backdrop:not(.hidden)')
-      && input.offsetParent !== null;
+      && target.offsetParent !== null;
     if (!treeOnScreen) return;
     e.preventDefault();
-    input.focus();
-    input.select();
+    target.focus();
+    target.select();
   });
 
   // Parent 2 autocomplete in add modal
@@ -3170,77 +3736,9 @@ function initSearch() {
   }
 }
 
-function onSearchInput() {
-  const q = $('search-input').value.trim().toLowerCase();
-  const dropdown = $('search-dropdown');
-  searchActiveIdx = -1;
-
-  if (!q) { closeSearchDropdown(); return; }
-
-  const matches = state.people.filter(p => {
-    const full = `${p.firstName} ${p.lastName || ''}`.toLowerCase();
-    return full.includes(q);
-  }).slice(0, 10);
-
-  if (!matches.length) { closeSearchDropdown(); return; }
-
-  dropdown.innerHTML = '';
-  matches.forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'search-item';
-
-    const full  = `${p.firstName} ${p.lastName || ''}`.trim();
-    const lower = full.toLowerCase();
-    const start = lower.indexOf(q);
-    if (start >= 0) {
-      btn.innerHTML =
-        escHtml(full.slice(0, start)) +
-        `<mark>${escHtml(full.slice(start, start + q.length))}</mark>` +
-        escHtml(full.slice(start + q.length));
-    } else {
-      btn.textContent = full;
-    }
-
-    btn.addEventListener('mousedown', (e) => { e.preventDefault(); searchFocusPerson(p); });
-    dropdown.appendChild(btn);
-  });
-
-  dropdown.classList.remove('hidden');
-}
-
-function onSearchKeydown(e) {
-  const dropdown = $('search-dropdown');
-  if (dropdown.classList.contains('hidden')) return;
-
-  const items = dropdown.querySelectorAll('.search-item');
-  if (!items.length) return;
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    searchActiveIdx = Math.min(searchActiveIdx + 1, items.length - 1);
-    updateSearchActive(items);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    searchActiveIdx = Math.max(searchActiveIdx - 1, 0);
-    updateSearchActive(items);
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    const target = searchActiveIdx >= 0 ? items[searchActiveIdx] : items[0];
-    if (target) target.dispatchEvent(new MouseEvent('mousedown'));
-  } else if (e.key === 'Escape') {
-    closeSearchDropdown();
-    $('search-input').blur();
-  }
-}
-
-function updateSearchActive(items) {
-  items.forEach((el, i) => el.classList.toggle('active', i === searchActiveIdx));
-}
-
 function closeSearchDropdown() {
   const dropdown = $('search-dropdown');
   if (dropdown) dropdown.classList.add('hidden');
-  searchActiveIdx = -1;
 }
 
 function searchFocusPerson(person) {
